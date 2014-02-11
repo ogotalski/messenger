@@ -1,0 +1,143 @@
+body {
+	position: fixed;
+	top: 0;
+	left: 0;
+	padding: 0;
+	margin: 0;
+	background: #ffffff;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#leftSide {
+	background: #FFFFFF;
+	float: left;
+	width: 100px;
+	overflow-x: hidden;
+}
+
+.users {
+	margin: 5px;
+	padding: 5px;
+	display: block;
+	list-style-type: none;
+}
+
+.user {
+	display: block;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	margin: 5px;
+	padding: 5px;
+	text-align: center;
+	border: solid 1px #676767;
+	background: #C5C5C5;
+}
+
+.user:hover {
+	border: solid 1px #FFFFFF;
+	background: #C5C5C5;
+}
+
+.user.selected {
+	border: solid 1px #676767;
+	background: #FFFFFF;
+}
+
+.userName {
+	text-transform: capitalize;
+}
+
+#rightSide {
+	float: left;
+	width: 200px;
+}
+
+#messageList {
+	margin: 5px;
+	padding: 5px;
+	display: block;
+	list-style-type: none;
+	overflow-x: hidden;
+}
+
+.message {
+	display: block;
+	margin: 5px;
+	padding: 5px;
+	border: solid 1px #FFFFFF;
+	background: #FFFFFF;
+}
+
+.message.outgoing {
+	border: solid 1px #FFFFFF;
+	background: #FFFFFF;
+}
+
+.message .userName {
+	float: left;
+	color: #9B9B9B;
+}
+.message .id {
+	display: none;
+	}
+
+.message .date {
+	text-align: right;
+	color: #888888;
+}
+
+.message .mess {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.message.outgoing .userName {
+	color: #3C6AFA;
+}
+
+.message.outgoing .date {
+	color: #888888;
+}
+
+#delemiter {
+	float: left;
+	top: 0;
+	left: 0;
+	padding: 5px;
+	width: 1px;
+	cursor: move;
+}
+
+.vl {
+	width: 1px;
+	background: #E7E7E7;
+	height: 100%;
+}
+
+.template {
+	display: none;
+}
+
+#inputBlock {
+	border-top: solid 1px #E7E7E7;
+	padding: 10px;
+}
+
+#inputMessage {
+	padding: 5px;
+	resize: none;
+	height: 32px;
+}
+
+#sendButton {
+	cursor: pointer;
+	float: right;
+	padding: 11px 11px;
+	border: solid 1px #717A7F;
+	background: #B4B4B4;
+}
+
+#sendButton:active {
+	background: #ffffff;
+}

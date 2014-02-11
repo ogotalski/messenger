@@ -1,0 +1,62 @@
+{
+  "message": [
+    {
+      "id": "1",
+      "user": "john",
+      "message": "hi",
+      "date": "2013-12-01"
+    },
+    {
+      "id": "2",
+      "user": "user",
+      "message": "hi",
+      "date": "2013-12-02",
+      "outgoing": true
+    },
+    {
+      "id": "3",
+      "user": "john",
+      "message": "hi",
+      "date": "2013-12-01",
+      "outgoing": true
+    },
+    {
+      "id": "4",
+      "user": "user",
+      "message": "hi",
+      "date": "2013-12-02"
+    },
+    {
+      "id": "5",
+      "user": "john",
+      "message": "how are you , john",
+      "date": "2013-12-01",
+      "outgoing": true
+    },
+    {
+      "id": "6",
+      "user": "user",
+      "message": "how are you?",
+      "date": "2013-12-03"
+    },
+    {
+      "id": "7",
+      "user": "john",
+      "message": "fine thnx & U",
+      "date": "2013-12-03"
+    },
+    {
+      "id": "8",
+      "user": "ann",
+      "message": "hi",
+      "date": "2013-12-01"
+    },
+    {
+      "id": "9",
+      "user": "ann",
+      "message": "hi",
+      "date": "2013-12-01",
+      "outgoing": true
+    }
+  ]
+}
