@@ -3,7 +3,11 @@ package org.training.messenger.controller.action;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,8 +21,10 @@ import org.training.messenger.constants.Constants;
 import org.training.messenger.utils.Formatter;
 
 public class MessageAction implements ServletAction {
+	private static final int POOL_SIZE = 10;
 	private MessageDAO messageDAO;
 	private UserDAO userDAO;
+	private ScheduledThreadPoolExecutor poolExecutor;
 	private static final String JSON_BUILDS_FOOT = "]}";
 	private static final String JSON_MESSAGES_HEAD = "{\"builds\":[";
 	private static final String JSON_MESSAGE_FORMAT = "{\"id\" : %d,\"user\" : \"%s\",\"message\" : \"%s\",\"date\" : \"%s\",\"outgoing\" : \"%s\"},";
@@ -26,6 +32,7 @@ public class MessageAction implements ServletAction {
 	public MessageAction() {
 		messageDAO = DAOFactory.getDAO(MessageDAO.class);
 		userDAO = DAOFactory.getDAO(UserDAO.class);
+		ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(POOL_SIZE);
 	}
 
 	@Override
@@ -44,14 +51,17 @@ public class MessageAction implements ServletAction {
 		if (user != null) {
 			String newMessages = request.getParameter("new");
 			List<Message> messages = null;
+			final String JSON_CONTENT_TYPE = "application/json";
+			response.setContentType(JSON_CONTENT_TYPE);
 			if (newMessages != null) {
+				AsyncContext asyncContext = request.startAsync();
+				ScheduledFuture task = poolExecutor.scheduleWithFixedDelay(new MessageGetter(asyncContext , user), 0, 2, TimeUnit.SECONDS);
+				asyncContext.getRequest().setAttribute("task", task);
 				messages = messageDAO.getNewMessages(user);
 			} else {
 				messages = messageDAO.getAllMessages(user);
 				messages.addAll(messageDAO.getNewMessages(user));
 			}
-			final String JSON_CONTENT_TYPE = "application/json";
-			response.setContentType(JSON_CONTENT_TYPE);
 			PrintWriter out = response.getWriter();
 			printJSONMessageList(user, messages, out);
 		} else {
@@ -60,7 +70,7 @@ public class MessageAction implements ServletAction {
 
 	}
 
-	private void printJSONMessageList(User user, List<Message> messages,
+	public static void printJSONMessageList(User user, List<Message> messages,
 			PrintWriter out) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(JSON_MESSAGES_HEAD);

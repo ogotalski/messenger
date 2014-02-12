@@ -9,6 +9,7 @@ body {
 }
 
 #leftSide {
+	display:none;
 	background: #FFFFFF;
 	float: left;
 	width: 100px;
@@ -49,6 +50,7 @@ body {
 }
 
 #rightSide {
+	display: none;
 	float: left;
 	width: 200px;
 }
@@ -107,6 +109,7 @@ body {
 	padding: 5px;
 	width: 1px;
 	cursor: move;
+	display: none;
 }
 
 .vl {
@@ -141,3 +144,74 @@ body {
 #sendButton:active {
 	background: #ffffff;
 }
+#loginedUser{
+	margin: 5px 15px;
+	padding: 5px;
+	text-align: center;
+	border: solid 1px #676767;
+	background: #FFFFFF;
+}
+.findUser{
+	margin: 5px 15px;
+	text-align: center;
+	border: solid 1px #676767;
+	background: #FFFFFF;
+}
+#searchUser{
+	margin:0px;
+	padding: 7px 10px ;
+	width: 100%;
+	border:none;
+}
+#loginBlock{
+	position:fixed;
+	left: 50%;
+	top: 50%;
+    margin-left:-200px;
+    margin-top: -100px;
+    border: solid 1px #676767;
+    background: #C5C5C5;
+}
+#loginBlock div.row {
+	margin: 2px;
+}
+#loginBlock div.row div.label {
+	float: left;	
+	padding-top: 5px;
+}
+#loginBlock div.row div.edit {
+	float: right;	
+	padding:0px;
+}
+#login {
+	padding:2px;
+	border: solid 1px #676767;
+	background: #FFFFFF;
+}
+#password {
+	padding:2px;
+	border: solid 1px #676767;
+	background: #FFFFFF;
+}
+#regButton {
+	cursor: pointer;
+	float: left;
+	margin: 11px;
+	
+	
+}
+#loginButton {
+	cursor: pointer;
+	float: right;
+	margin:2px;
+	padding: 7px 7px;
+	border: solid 1px #717A7F;
+	background: #B4B4B4;
+}
+#loginBlock #loginError {
+	margin-top: 100px;
+	padding : 2px;
+	text-align: center;
+	color:#FF5959;
+}
+

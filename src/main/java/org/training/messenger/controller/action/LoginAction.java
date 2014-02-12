@@ -33,7 +33,7 @@ public class LoginAction implements ServletAction {
 			session.setAttribute(Constants.USER_ATR, user);
 			response.addCookie(new Cookie(Constants.QID, user.getQId()));
 		} else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		}
 
 	}
