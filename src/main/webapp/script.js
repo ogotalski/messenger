@@ -429,8 +429,7 @@ utils.Element.prototype.getHeigth = function() {
 
 // ------messenger
 var messenger = {};
-messenger.loginError = new utils.Event("loginError",
-		"Incorrect login or password");
+messenger.loginError = new utils.Event("loginError","Incorrect login or password");
 messenger.serverError = new utils.Event("serverError", "Server error");
 messenger.loginEvent = new utils.Event("login");
 // ------loginBlock
@@ -498,8 +497,7 @@ loginBlock.onError = function(ev) {
 	if (!ev) {
 		ev = window.event;
 	}
-	this.element.style.display = "block";
-	loginBlock.setError(ev.details);
+	loginBlock.setError(ev.detail);
 };
 loginBlock.hide = function() {
 	loginBlock.element.style.display = "none";
@@ -518,7 +516,7 @@ var messageBlock = function() {
 	el.INPUT_BLOCK = new utils.Element(document.getElementById("inputBlock"));
 	el.delimiterFullLentgh = el.DELIMITER.getWidth();
 	el.leftXoffset = el.LEFT_SIDE.getWidth() + el.delimiterFullLentgh;
-	el.rigthXoffset = el.RIGHT_SIDE.getWidth();
+	el.rightXoffset = el.RIGHT_SIDE.getWidth();
 	el.INPUT_MESSAGE = new utils.Element(document
 			.getElementById("inputMessage"));
 	el.SEND_BUTTON = new utils.Element(document.getElementById("sendButton"));
@@ -538,17 +536,17 @@ messageBlock.setWidth = function() {
 	if (leftSideWidth < this.leftXoffset) {
 		leftSideWidth = this.leftXoffset;
 	}
-	var rigthSideWidth = this.viewportWidth - leftSideWidth;
-	if (rigthSideWidth < this.rigthXoffset) {
-		rigthSideWidth = this.rigthXoffset;
-		leftSideWidth = this.viewportWidth - this.rigthXoffset;
+	var rightSideWidth = this.viewportWidth - leftSideWidth;
+	if (rightSideWidth < this.rightSideWidth) {
+		rightSideWidth = this.rightSideWidth;
+		leftSideWidth = this.viewportWidth - this.rightXoffset;
 	}
 	if (leftSideWidth < this.leftXoffset) {
 		leftSideWidth = this.leftXoffset;
 	}
-	this.RIGHT_SIDE.setFullWidth(rigthSideWidth);
+	this.RIGHT_SIDE.setFullWidth(rightSideWidth);
 	this.LEFT_SIDE.setFullWidth(leftSideWidth - this.delimiterFullLentgh);
-	this.INPUT_MESSAGE.setFullWidth(rigthSideWidth
+	this.INPUT_MESSAGE.setFullWidth(rightSideWidth
 			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX );  
 };
 messageBlock.onResize = function(ev) {
@@ -569,8 +567,8 @@ messageBlock.onMouseMove = function(ev) {
 	}
 	var clientX = ev.clientX;
 	if (messageBlock.leftXoffset < clientX
-			&& messageBlock.rigthXoffset < messageBlock.viewportWidth - clientX) {
-		ratio = clientX / messageBlock.viewportWidth;
+			&& messageBlock.rightXoffset < messageBlock.viewportWidth - clientX) {
+		messageBlock.ratio = clientX / messageBlock.viewportWidth;
 		messageBlock.setWidth();
 	}
 
@@ -656,6 +654,8 @@ messageBlock.clearUsers = function() {
 };
 messageBlock.hide = function() {
 	utils.removeListener(window, messageBlock.onResize, "resize");
+	utils.removeListener(messageBlock.DELIMITER.element, messageBlock.onMouseDown, "mousedown");
+	
 	messageBlock.RIGHT_SIDE.element.style.display = "none";
 	messageBlock.LEFT_SIDE.element.style.display = "none";
 	messageBlock.DELIMITER.element.style.display = "none";
@@ -666,7 +666,9 @@ messageBlock.view = function() {
 	messageBlock.LEFT_SIDE.element.style.display = "block";
 	messageBlock.DELIMITER.element.style.display = "block";
 	messageBlock.onResize();
+	
 	utils.addListener(window, messageBlock.onResize, "resize");
+	utils.addListener(messageBlock.DELIMITER.element, messageBlock.onMouseDown, "mousedown");
 	
 };
 
@@ -732,8 +734,9 @@ function start() {
 	utils.addListener(loginBlock.element, messageBlock.view, "login");
 	utils.addListener(loginBlock.element, messageService.onlogin, "login");
 	
-//	utils.addListener(loginBlock.element, loginBlock.view, "loginError");
-//	utils.addListener(loginBlock.element, messageBlock.hide, "loginError");
+	utils.addListener(loginBlock.element, loginBlock.view, "loginError");
+	utils.addListener(loginBlock.element, loginBlock.onError, "loginError");
+	utils.addListener(loginBlock.element, messageBlock.hide, "loginError");
 
 	if (utils.getCookie('cid')) {
            loginBlock.doLoginByCID();
