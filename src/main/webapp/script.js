@@ -240,9 +240,9 @@ utils.addListener = function() {
 	;
 }();
 utils.removeListener = function() {
-	if (document.documentElement.addEventListener) {
+	if (document.documentElement.removeEventListener) {
 		return function(elem, listener, type) {
-			elem.removeListener(type, listener);
+			elem.removeEventListener(type, listener);
 		};
 
 	} else {
@@ -400,12 +400,12 @@ utils.Element = function(element) {
 	this.bordersY += getStyleValue(cs, "marginBottom", "margin-bottom");
 	this.bordersY += getStyleValue(cs, "marginTop", "margin-top");
 	this.bordersX += getStyleValue(cs, "marginLeft", "margin-left");
-	this.bordersX += getStyleValue(cs, "marginRigth", "margin-rigth");
+	this.bordersX += getStyleValue(cs, "marginRight", "margin-right");
 
 	this.bordersY += getStyleValue(cs, "paddingBottom", "padding-bottom");
 	this.bordersY += getStyleValue(cs, "paddingTop", "padding-top");
 	this.bordersX += getStyleValue(cs, "paddingLeft", "padding-left");
-	this.bordersX += getStyleValue(cs, "paddingRigth", "padding-rigth");
+	this.bordersX += getStyleValue(cs, "paddingRight", "padding-right");
 	var border = element.offsetWidth - element.clientWidth;
 	if (border) {
 		this.bordersX += border;
@@ -549,7 +549,7 @@ messageBlock.setWidth = function() {
 	this.RIGHT_SIDE.setFullWidth(rigthSideWidth);
 	this.LEFT_SIDE.setFullWidth(leftSideWidth - this.delimiterFullLentgh);
 	this.INPUT_MESSAGE.setFullWidth(rigthSideWidth
-			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX);
+			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX );  
 };
 messageBlock.onResize = function(ev) {
 	messageBlock.viewportWidth = document.documentElement.clientWidth;
@@ -655,18 +655,19 @@ messageBlock.clearUsers = function() {
 	messageBlock.USERS_LIST.innerHTML = "";
 };
 messageBlock.hide = function() {
+	utils.removeListener(window, messageBlock.onResize, "resize");
 	messageBlock.RIGHT_SIDE.element.style.display = "none";
 	messageBlock.LEFT_SIDE.element.style.display = "none";
 	messageBlock.DELIMITER.element.style.display = "none";
 
 };
 messageBlock.view = function() {
-	messageBlock.onResize();
-	utils.addListener(window, messageBlock.onResize, "resize");
 	messageBlock.RIGHT_SIDE.element.style.display = "block";
 	messageBlock.LEFT_SIDE.element.style.display = "block";
 	messageBlock.DELIMITER.element.style.display = "block";
-
+	messageBlock.onResize();
+	utils.addListener(window, messageBlock.onResize, "resize");
+	
 };
 
 // ---messageDAO
@@ -722,6 +723,9 @@ messageService.onlogin = function() {
 
 // -----workflow
 function start() {
+	messageBlock.onResize();
+	loginBlock.view();
+	messageBlock.hide();
 	utils.addListener(loginBlock.loginButton, loginBlock.doLogin, "click");
 	utils.addListener(loginBlock.regButton,loginBlock.doReg, "click");
 	utils.addListener(loginBlock.element, loginBlock.hide, "login");

@@ -9,7 +9,7 @@ body {
 }
 
 #leftSide {
-	display:none;
+	display:block;
 	background: #FFFFFF;
 	float: left;
 	width: 100px;
@@ -50,7 +50,7 @@ body {
 }
 
 #rightSide {
-	display: none;
+	display: block;
 	float: left;
 	width: 200px;
 }
@@ -109,7 +109,7 @@ body {
 	padding: 5px;
 	width: 1px;
 	cursor: move;
-	display: none;
+	display: block;
 }
 
 .vl {
@@ -171,6 +171,7 @@ body {
     margin-top: -100px;
     border: solid 1px #676767;
     background: #C5C5C5;
+    display:none;
 }
 #loginBlock div.row {
 	margin: 2px;
