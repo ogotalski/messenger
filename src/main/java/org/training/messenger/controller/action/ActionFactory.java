@@ -10,6 +10,7 @@ public class ActionFactory {
 	static {
 	//	map.put(ISSUE, new IssueViewAction());
 		map.put("login", new LoginAction());
+		map.put("reg", new LoginAction());
 		map.put("loguot", new LogoutAction());
 		map.put("get", new MessageAction());
 		map.put("send", new SendMessageAction());

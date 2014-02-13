@@ -15,11 +15,12 @@ public class MessageGetter implements Runnable {
 	private MessageDAO messageDAO;
 	private AsyncContext asyncContext;
 	private User user;
-
+	private int id;
 	public MessageGetter(AsyncContext asyncContext, User user) {
 		this.asyncContext = asyncContext;
 		this.user = user;
 		messageDAO = DAOFactory.getDAO(MessageDAO.class);
+		id = 1;
 	}
 
 	@Override
@@ -29,7 +30,10 @@ public class MessageGetter implements Runnable {
 		PrintWriter out;
 		try {
 			out = asyncContext.getResponse().getWriter();
-			MessageAction.printJSONMessageList(user, list, out);
+			out.println("id: " + id);
+			out.println("date: " + MessageAction.JSONMessageListToString(user, list));
+			out.println();
+			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

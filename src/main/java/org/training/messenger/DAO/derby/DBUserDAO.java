@@ -22,12 +22,12 @@ public class DBUserDAO implements UserDAO {
 		try {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
-					+ "WHERE user = ? and password = ? ");
+					+ "WHERE name = ? and password = ? ");
 			statement.setString(1, name);
 			statement.setString(2, password);
 			rs = statement.executeQuery();
 			if (rs.next()) {
-				getUser(rs);
+				user = getUser(rs);
 			}
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -39,12 +39,13 @@ public class DBUserDAO implements UserDAO {
 		return user;
 	}
 
-	private void getUser(ResultSet rs) throws SQLException {
+	private User getUser(ResultSet rs) throws SQLException {
 		User user;
 		user = new User();
 		user.setId(rs.getInt(1));
 		user.setName(rs.getString(2));
 		user.setIp(rs.getString(3));
+		return user;
 	}
 
 	@Override
@@ -56,7 +57,7 @@ public class DBUserDAO implements UserDAO {
 		try {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
-					+ "WHERE user = ? ");
+					+ "WHERE name = ? ");
 			statement.setString(1, name);
 			rs = statement.executeQuery();
 			if (rs.next()) {
@@ -128,7 +129,7 @@ public class DBUserDAO implements UserDAO {
 		PreparedStatement statement = null;
 		try {
 			connection = DBSource.getConnection();
-			statement = connection.prepareStatement("INSERT INTO users (name,password,ip) VALUES (?,?,?)");
+			statement = connection.prepareStatement("INSERT INTO users (name,password,cid) VALUES (?,?,?)");
 			statement.setString(1, user.getName());
 			statement.setString(2, user.getPassword());
 			statement.setString(3, user.getIp());
@@ -147,7 +148,7 @@ public class DBUserDAO implements UserDAO {
 		PreparedStatement statement = null;
 		try {
 			connection = DBSource.getConnection();
-			statement = connection.prepareStatement("update users set cid=? from users where id = ?");
+			statement = connection.prepareStatement("update users set cid=? where id = ?");
 			statement.setString(1, user.getIp());
 			statement.setInt(2, user.getId());
 			statement.execute();

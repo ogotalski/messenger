@@ -17,8 +17,8 @@ import org.training.messenger.exceptions.ServerException;
 
 public class DBMessengeDAO implements MessageDAO {
 
-	private static final String UPDATE_READED = "update messages set readed=true from messages where readed = false and receiver = ?";
-	private static final String SELECT_MESSENGES = "SELECT id, sender, receiver, text, date FROM users";
+	private static final String UPDATE_READED = "update messages set readed=true where readed = false and receiver = ?";
+	private static final String SELECT_MESSENGES = "SELECT id, sender, receiver, text, date_time FROM messages";
 	UserDAO userDAO;
 	
 	

@@ -3,6 +3,7 @@ package org.training.messenger.controller.action;
 import java.io.IOException;
 import java.sql.Timestamp;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,7 +33,19 @@ public class SendMessageAction implements ServletAction {
 		String receiver = request.getParameter(Constants.USER_PARAM);
 		String text = request.getParameter("text");
 		String date = request.getParameter("date");
-
+		
+		if (user == null) {
+			for (Cookie cookie : request.getCookies()) {
+				if (cookie.getName().equals(Constants.QID)) {
+					user = userDAO.getUserbyQId(cookie.getValue());
+					break;
+				}
+			}
+			if (user != null) {
+				request.getSession().setAttribute(Constants.USER_ATR,
+						user);
+			}
+		}
 		if (user != null && receiver != null && text != null && date != null) {
 			User receiveUser = userDAO.getUser(receiver);
 			Timestamp messDate = Formatter.parse(date);
@@ -44,7 +57,7 @@ public class SendMessageAction implements ServletAction {
 			message.setReaded(false);
 			messageDAO.addMessage(message);
 		} else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 
 		}
 	}

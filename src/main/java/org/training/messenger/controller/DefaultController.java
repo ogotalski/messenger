@@ -20,6 +20,19 @@ public class DefaultController extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+		doJob(request, response);
+		
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doJob(request, response);
+	}
+
+	private void doJob(HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
 		String actionStr = request.getParameter("action");
 		ServletAction  action = ActionFactory.getAction(actionStr);
 		if (action != null) {
@@ -27,7 +40,6 @@ public class DefaultController extends HttpServlet{
 		} else {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		}
-		
 	}
 
 	

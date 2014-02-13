@@ -26,13 +26,14 @@ public class MessageAction implements ServletAction {
 	private UserDAO userDAO;
 	private ScheduledThreadPoolExecutor poolExecutor;
 	private static final String JSON_BUILDS_FOOT = "]}";
-	private static final String JSON_MESSAGES_HEAD = "{\"builds\":[";
+	private static final String JSON_MESSAGES_HEAD = "{\"user\":\"%s\",\"message\": [";
 	private static final String JSON_MESSAGE_FORMAT = "{\"id\" : %d,\"user\" : \"%s\",\"message\" : \"%s\",\"date\" : \"%s\",\"outgoing\" : \"%s\"},";
 
 	public MessageAction() {
 		messageDAO = DAOFactory.getDAO(MessageDAO.class);
 		userDAO = DAOFactory.getDAO(UserDAO.class);
-		ScheduledThreadPoolExecutor poolExecutor = new ScheduledThreadPoolExecutor(POOL_SIZE);
+		poolExecutor = new ScheduledThreadPoolExecutor(
+				POOL_SIZE);
 	}
 
 	@Override
@@ -44,56 +45,54 @@ public class MessageAction implements ServletAction {
 			for (Cookie cookie : request.getCookies()) {
 				if (cookie.getName().equals(Constants.QID)) {
 					user = userDAO.getUserbyQId(cookie.getValue());
-					request.getSession().setAttribute(Constants.USER_ATR, user);
+					break;
 				}
+			}
+			if (user != null) {
+				request.getSession().setAttribute(Constants.USER_ATR, user);
 			}
 		}
 		if (user != null) {
-			String newMessages = request.getParameter("new");
+			AsyncContext asyncContext = request.startAsync();
 			List<Message> messages = null;
-			final String JSON_CONTENT_TYPE = "application/json";
+			response.setCharacterEncoding("UTF-8");
+			final String JSON_CONTENT_TYPE = "text/event-stream";
 			response.setContentType(JSON_CONTENT_TYPE);
-			if (newMessages != null) {
-				AsyncContext asyncContext = request.startAsync();
-				ScheduledFuture task = poolExecutor.scheduleWithFixedDelay(new MessageGetter(asyncContext , user), 0, 2, TimeUnit.SECONDS);
-				asyncContext.getRequest().setAttribute("task", task);
-				messages = messageDAO.getNewMessages(user);
-			} else {
-				messages = messageDAO.getAllMessages(user);
-				messages.addAll(messageDAO.getNewMessages(user));
-			}
-			PrintWriter out = response.getWriter();
-			printJSONMessageList(user, messages, out);
+			ScheduledFuture task = poolExecutor.scheduleWithFixedDelay(
+					new MessageGetter(asyncContext, user), 0, 2,
+					TimeUnit.SECONDS);
+			asyncContext.getRequest().setAttribute("task", task);
+
 		} else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 		}
 
 	}
 
-	public static void printJSONMessageList(User user, List<Message> messages,
-			PrintWriter out) {
+	public static String JSONMessageListToString(User user,
+			List<Message> messages) {
 		StringBuilder sb = new StringBuilder();
-		sb.append(JSON_MESSAGES_HEAD);
+		sb.append(String.format(JSON_MESSAGES_HEAD, user.toString()));
 		String json_user;
 		String outgoing;
-		for (Message message : messages) {
-			if (message.getReceiver().equals(user)) {
-				json_user = message.getSender().toString();
-				outgoing = "false";
-			} else {
+		if (!messages.isEmpty()) {
+			for (Message message : messages) {
+				if (message.getReceiver().equals(user)) {
+					json_user = message.getSender().toString();
+					outgoing = "false";
+				} else {
 
-				json_user = message.getReceiver().toString();
-				outgoing = "true";
+					json_user = message.getReceiver().toString();
+					outgoing = "true";
+				}
+				sb.append(String.format(JSON_MESSAGE_FORMAT, message.getId(),
+						json_user, message.getText(),
+						Formatter.format(message.getDate()), outgoing));
 			}
-			sb.append(String.format(JSON_MESSAGE_FORMAT, message.getId(),
-					json_user, message.getText(),
-					Formatter.format(message.getDate()), outgoing));
+			sb.setLength(sb.length() - 1); // remove last comma
 		}
-		sb.setLength(sb.length() - 1); // remove last comma
 		sb.append(JSON_BUILDS_FOOT);
-		out.print(sb.toString());
-		out.flush();
-		out.close();
+		return sb.toString();
 	}
 
 }
