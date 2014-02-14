@@ -481,8 +481,7 @@ var viewUser = function(user) {
 			selectCurrentUser(userElem);
 			viewMessages(user);
 			break;
-		}
-		;
+		};
 	}
 	;
 };
@@ -497,8 +496,7 @@ var onSendButtonClick = function() {
 		mess.outgoing = true;
 		mess.date = getCurrDate();
 		messageDAO.sendMessage(mess);
-	}
-	;
+	};
 };
 SEND_BUTTON.element.onclick = onSendButtonClick;
 

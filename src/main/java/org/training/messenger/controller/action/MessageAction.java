@@ -25,7 +25,7 @@ public class MessageAction implements ServletAction {
 	private MessageDAO messageDAO;
 	private UserDAO userDAO;
 	private ScheduledThreadPoolExecutor poolExecutor;
-	private static final String JSON_BUILDS_FOOT = "]}";
+	private static final String JSON_MESSAGES_FOOT = "]}";
 	private static final String JSON_MESSAGES_HEAD = "{\"user\":\"%s\",\"message\": [";
 	private static final String JSON_MESSAGE_FORMAT = "{\"id\" : %d,\"user\" : \"%s\",\"message\" : \"%s\",\"date\" : \"%s\",\"outgoing\" : \"%s\"},";
 
@@ -91,7 +91,7 @@ public class MessageAction implements ServletAction {
 			}
 			sb.setLength(sb.length() - 1); // remove last comma
 		}
-		sb.append(JSON_BUILDS_FOOT);
+		sb.append(JSON_MESSAGES_FOOT);
 		return sb.toString();
 	}
 

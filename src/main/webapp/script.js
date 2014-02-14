@@ -89,8 +89,8 @@ utils.EventSource = function() {
 							} else if (line.indexOf('id:') == 0) {
 								lastEventId = line.replace(/id:?\s*/, '');
 							} else if (line.indexOf('id') == 0) { // this
-																	// resets
-																	// the id
+								// resets
+								// the id
 								lastEventId = null;
 							} else if (line == '') {
 								if (data.length) {
@@ -287,7 +287,8 @@ utils.getComputedStyle = function() {
 						return arguments[2].toUpperCase();
 					});
 				}
-				return this.el.currentStyle[prop] ? this.el.currentStyle[prop] : null;
+				return this.el.currentStyle[prop] ? this.el.currentStyle[prop]
+						: null;
 			};
 			return cs;
 		};
@@ -299,7 +300,24 @@ utils.getComputedStyle = function() {
 		};
 	}
 }();
+utils.getCurDate = function() {
+	var today = new Date();
+	var dd = today.getDate();
+	var MM = today.getMonth() + 1; // January is 0!
 
+	var yyyy = today.getFullYear();
+	if (dd < 10) {
+		dd = '0' + dd;
+	}
+	if (MM < 10) {
+		MM = '0' + MM;
+	}
+	var hh = today.getHours();
+	var mm = today.getMinutes();
+	var ss = today.getSeconds();
+	today = hh + ":" + mm + ":" + ss + " " + dd + "-" + MM + "-" + yyyy;
+	return today;
+};
 // ------------utils.Storage
 utils.Storage = function() {
 	if (localStorage) {
@@ -408,32 +426,32 @@ utils.Element.prototype.getWidth = function() {
 utils.Element.prototype.getHeigth = function() {
 	return this.element.clientHeight;
 };
-var EventBus = function(){ 
-	this.listeners ={};
+var EventBus = function() {
+	this.listeners = {};
 };
-EventBus.prototype.addEventListener = function( handler, event){
-	if (!this.listeners[event]){
+EventBus.prototype.addEventListener = function(handler, event) {
+	if (!this.listeners[event]) {
 		this.listeners[event] = [];
 	}
 	this.listeners[event].push(handler);
 };
-EventBus.prototype.dispatchEvent = function(event,message){
-	if (!message){
+EventBus.prototype.dispatchEvent = function(event, message) {
+	if (!message) {
 		message = event;
 	}
-	if (this.listeners[event]){
-		for (var i in this.listeners[event]){
+	if (this.listeners[event]) {
+		for ( var i in this.listeners[event]) {
 			this.listeners[event][i].call(message);
 		}
 	}
 };
-EventBus.prototype.removeEvent = function(handler, event){
-	if (events[event]){
+EventBus.prototype.removeEvent = function(handler, event) {
+	if (events[event]) {
 		var numOfCallbacks = this.listeners[type].length;
 		var newArray = [];
-		for(var i=0; i<numOfCallbacks; i++) {
+		for (var i = 0; i < numOfCallbacks; i++) {
 			var listener = this.listeners[type][i];
-			if(listener === handler) {
+			if (listener === handler) {
 
 			} else {
 				newArray.push(listener);
@@ -478,14 +496,16 @@ loginBlock.doQuery = function(action, query) {
 		if (xmlhttp.readyState == 4) {
 			if (xmlhttp.status == 200) {
 				eventBus.dispatchEvent("login");
-				messageService.readMessagesArray(JSON
-						.parse(xmlhttp.responseText).message);
+				var resp = JSON.parse(xmlhttp.responseText);
+				messageService.setLogindedUser(resp.user);
+				messageService.readMessagesArray(resp.message);
 			} else if (xmlhttp.status == 401) {
 				if (query) {
-					eventBus.dispatchEvent("loginError","Invalid name or password");
+					eventBus.dispatchEvent("loginError",
+							"Invalid name or password");
 				}
 			} else {
-				eventBus.dispatchEvent("serverError","Server error");
+				eventBus.dispatchEvent("serverError", "Server error");
 			}
 		}
 	};
@@ -495,18 +515,18 @@ loginBlock.doQuery = function(action, query) {
 
 };
 loginBlock.doLogin = function() {
-	loginBlock.doQuery("login",loginBlock._getQueryString());
+	loginBlock.doQuery("login", loginBlock._getQueryString());
 };
 loginBlock.doLoginByCID = function() {
 	loginBlock.doQuery("login");
 };
 
 loginBlock.doReg = function() {
-	loginBlock.doQuery("reg",loginBlock._getQueryString());
+	loginBlock.doQuery("reg", loginBlock._getQueryString());
 };
 
 loginBlock.onError = function(message) {
-	loginBlock.setError(ev.detail);
+	loginBlock.setError(message);
 };
 loginBlock.hide = function() {
 	loginBlock.element.style.display = "none";
@@ -528,20 +548,25 @@ var messageBlock = function() {
 	el.rightXoffset = el.RIGHT_SIDE.getWidth();
 	el.INPUT_MESSAGE = new utils.Element(document
 			.getElementById("inputMessage"));
-	el.SEARCH_USER =  new utils.Element(document.getElementById("searchUser"));
-	el.SEARCH_USER_BLOCK = new utils.Element(document.getElementById("findUserBlock"));
+	el.SEARCH_USER = new utils.Element(document.getElementById("searchUser"));
+	el.SEARCH_USER_BLOCK = new utils.Element(document
+			.getElementById("findUserBlock"));
 	el.SEND_BUTTON = new utils.Element(document.getElementById("sendButton"));
 	el.USER_TEMPLATE = document.getElementById("template").querySelector(
 			".user");
 	el.MESS_TEMPLATE = document.getElementById("template").querySelector(
 			".message");
-	el.loginedUser = undefined;
-
+	el.LOGINED_USER = document.getElementById("loginedUser");
+	el.SEARCH_USER_BUTTON = new utils.Element(document
+			.getElementById("searchButton"));
 	el.viewportHeight = document.documentElement.clientHeight - 1;
 	el.viewportWidth = document.documentElement.clientWidth;
 	el.ratio = 1 / 4;
 	return el;
 }();
+messageBlock.setLogined = function(user) {
+	messageBlock.LOGINED_USER.innerText = user;
+};
 messageBlock.setWidth = function() {
 	var leftSideWidth = this.viewportWidth * this.ratio;
 	if (leftSideWidth < this.leftXoffset) {
@@ -558,8 +583,10 @@ messageBlock.setWidth = function() {
 	this.RIGHT_SIDE.setFullWidth(rightSideWidth);
 	this.LEFT_SIDE.setFullWidth(leftSideWidth - this.delimiterFullLentgh);
 	this.INPUT_MESSAGE.setFullWidth(rightSideWidth
-			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX );  
-	this.SEARCH_USER.setFullWidth(leftSideWidth-this.delimiterFullLentgh - this.SEARCH_USER_BLOCK.bordersX);
+			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX);
+	this.SEARCH_USER.setFullWidth(leftSideWidth - this.delimiterFullLentgh
+			- this.SEARCH_USER_BLOCK.bordersX
+			- this.SEARCH_USER_BUTTON.getWidth() - 4);
 };
 messageBlock.onResize = function(ev) {
 	messageBlock.viewportWidth = document.documentElement.clientWidth;
@@ -615,7 +642,47 @@ messageBlock.addUser = function(user) {
 	this.USERS_LIST.appendChild(elem);
 	return elem;
 };
+messageBlock.onUserListClick = function(ev) {
+	if (!ev) {
+		ev = window.event;
+	}
+	if (!ev.currentTarget) {
+		ev.currentTarget = this;
 
+	}
+	if (ev.target===ev.currentTarget){
+		return;
+	}
+	var userblock =ev.target;
+	while(userblock.className != "user"){
+		if ( userblock.id === "usersList"){
+			return;
+		}
+		userblock=userblock.parentElement;
+	}
+	var user = userblock.getAttribute("data-user");
+	if (user) {
+		window.location.hash = user;
+	};
+
+};
+
+messageBlock.setCurrentUser = function(user) {
+	var elem = messageBlock.USERS_LIST.querySelector(".selected");
+	if (elem) {
+		elem.className = "user";
+	}
+	
+	var length =messageBlock.USERS_LIST.children.length;
+	for (var i = 0; i < length; i++) {
+		var userElem = messageBlock.USERS_LIST.children[i];
+		if (user === userElem.getAttribute("data-user")) {
+			userElem.className += " selected";
+			break;
+		}
+
+	};
+};
 messageBlock.addMess = function(mess) {
 	var elem = this.MESS_TEMPLATE.cloneNode(true);
 	var el;
@@ -664,10 +731,20 @@ messageBlock.clearMessages = function() {
 messageBlock.clearUsers = function() {
 	messageBlock.USERS_LIST.innerHTML = "";
 };
+messageBlock.viewUsers = function(arr) {
+	messageBlock.clearUsers();
+	for ( var i in arr) {
+		messageBlock.addUser(arr[i].user);
+	}
+};
 messageBlock.hide = function() {
 	utils.removeListener(window, messageBlock.onResize, "resize");
-	utils.removeListener(messageBlock.DELIMITER.element, messageBlock.onMouseDown, "mousedown");
-	
+	utils.removeListener(messageBlock.DELIMITER.element,
+			messageBlock.onMouseDown, "mousedown");
+	utils.removeListener(messageBlock.SEARCH_USER_BUTTON.element,
+			messageService.onUserSearch, "click");
+	utils.removeListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "change");
 	messageBlock.RIGHT_SIDE.element.style.display = "none";
 	messageBlock.LEFT_SIDE.element.style.display = "none";
 	messageBlock.DELIMITER.element.style.display = "none";
@@ -678,28 +755,48 @@ messageBlock.view = function() {
 	messageBlock.LEFT_SIDE.element.style.display = "block";
 	messageBlock.DELIMITER.element.style.display = "block";
 	messageBlock.onResize();
-	
-	utils.addListener(window, messageBlock.onResize, "resize");
-	utils.addListener(messageBlock.DELIMITER.element, messageBlock.onMouseDown, "mousedown");
-	
-};
 
+	utils.addListener(window, messageBlock.onResize, "resize");
+	utils.addListener(messageBlock.DELIMITER.element, messageBlock.onMouseDown,
+			"mousedown");
+	utils.addListener(messageBlock.SEARCH_USER_BUTTON.element,
+			messageService.onUserSearch, "click");
+	utils.addListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "input");
+	utils.addListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "keyup");
+	utils.addListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "paste");
+	utils.addListener(messageBlock.USERS_LIST,messageBlock.onUserListClick, "click");
+	utils.addListener(window,messageService.onHashChange,"hashchange");
+	utils.addListener(messageBlock.SEND_BUTTON.element,messageBlock.onSendButtonClick,"click");
+};
+messageBlock.onSendButtonClick = function() {
+	var mess = {};
+	mess.message = messageBlock.INPUT_MESSAGE.element.value;
+	messageBlock.INPUT_MESSAGE.element.value = "";
+	messageService.sendMessage(mess);
+};
 // ---messageDAO
 var messageService = {
 	currentUser : undefined,
-	messages : {}
+	messages : {},
+	loginedUser : undefined
 };
-messageService.readMessage = function(mess) {
+messageService.setLoginedUser = function(user) {
+	messageService.loginedUser = user;
+	messageBlock.setLogined(user);
+};
+messageService.readMessage = function(message) {
 	var user = message.user.toUpperCase();
 	if (this.messages[user]) {
 		this.messages[user].push(message);
-		if (currentUser && currentUser.toUpperCase() === user) {
+		if (currentUser && currentUser === user) {
 			messageBlock.addMess(message);
 		}
 
 	} else {
 		this.messages[user] = new Array(message);
-		messageBlock.addUser(message.user);
 	}
 };
 
@@ -715,8 +812,11 @@ messageService.readMessagesArray = function(arr) {
 		user = mess.user;
 		this.readMessage(mess);
 	}
+	messageBlock.viewUsers(messageService.messages);
 	if (!this.currentUser && user) {
 		window.location.hash = user;
+	}else if (this.currentUser){
+		messageBlock.setCurrentUser(this.currentUser);
 	}
 };
 messageService.start = function() {
@@ -726,34 +826,113 @@ messageService.start = function() {
 		messageService.readMessagesArray(JSON.parse(e.data).message);
 	};
 	event.onerror = function(e) {
-		utils.dispatch(loginBlock.element,messenger.serverError);
+		// eventBus.dispatchEvent("serverError");
 
 	};
 
 };
 messageService.onlogin = function() {
-		messageService.start();
+	// messageService.start();
+};
+messageService.searchUsersVal = "";
+messageService.onUserSearch = function() {
+	var search = messageBlock.SEARCH_USER.element.value;
+	if (messageService.searchUsersVal === search) {
+	} else {
+		if (search) {
+			messageService.searchUsersVal = search;
+			var xmlhttp = utils.getXmlHttp();
+			xmlhttp.open('POST', 'controller', true);
+			xmlhttp.onreadystatechange = function() {
+				if (xmlhttp.readyState == 4) {
+					if (xmlhttp.status == 200) {
+						eventBus.dispatchEvent("userSearch");
+						messageBlock
+								.viewUsers(JSON.parse(xmlhttp.responseText).users);
+					} else if (xmlhttp.status == 401) {
+						if (query) {
+							eventBus.dispatchEvent("userSearchError",
+									"Nothing found");
+						}
+					} else {
+						eventBus.dispatchEvent("serverError", "Server error");
+					}
+				}
+			};
+			xmlhttp.setRequestHeader("Content-type",
+					"application/x-www-form-urlencoded");
+			xmlhttp.send("&action=users&searchUser=" + search);
+		} else {
+			messageBlock.viewUsers(messageService.messages);
+		}
+	}
+};
+messageService.sendMessage = function(mess) {
+	mess.user = messageService.currentUser;
+	mess.date = utils.getCurDate();
+	mess.outgoing = true;
+	messageService.readMessage(mess);
+
+	var xmlhttp = utils.getXmlHttp();
+	xmlhttp.open('POST', 'controller', true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState == 4) {
+			if (xmlhttp.status == 200) {
+
+			} else if (xmlhttp.status == 401) {
+				eventBus.dispatchEvent("loginError");
+			} else {
+				eventBus.dispatchEvent("serverError", "Server error");
+			}
+		}
+	};
+	xmlhttp.setRequestHeader("Content-type",
+			"application/x-www-form-urlencoded");
+	xmlhttp.send("&action=sent&user=" + mess.user + "&date" + mess.date
+			+ "&text" + mess.message);
+
+};
+messageService.onHashChange = function() {
+	var hash = window.location.hash;
+	if (hash) {
+		hash = hash.substring(1); // remove '#'
+		messageService.viewUser(hash);
+	}
 };
 
+messageService.viewUser = function(user) {
+		messageBlock.setCurrentUser(user);
+		messageService.currentUser = user;
+		messageBlock.clearMessages();
+		for ( var i in messageService.messages[user]) {
+			messageBlock.addMess(messageService.messages[user][i]);
+		}
+		;
+	 
+};
+messageService.setLogindedUser = function(user){
+	messageService.loginedUser = user;
+	messageBlock.setLogined(user);
+};
 // -----workflow
 function start() {
 	messageBlock.onResize();
 	loginBlock.view();
 	messageBlock.hide();
 	utils.addListener(loginBlock.loginButton, loginBlock.doLogin, "click");
-	utils.addListener(loginBlock.regButton,loginBlock.doReg, "click");
-	eventBus.addEventListener(loginBlock.hide,"login");
-	
+	utils.addListener(loginBlock.regButton, loginBlock.doReg, "click");
+	eventBus.addEventListener(loginBlock.hide, "login");
+
 	eventBus.addEventListener(messageBlock.view, "login");
 	eventBus.addEventListener(messageService.onlogin, "login");
-	
+
 	eventBus.addEventListener(loginBlock.view, "loginError");
 	eventBus.addEventListener(loginBlock.onError, "loginError");
 	eventBus.addEventListener(messageBlock.hide, "loginError");
-
-	if (utils.getCookie('cid')) {
-           loginBlock.doLoginByCID();
-	} 
 	
+	if (utils.getCookie('cid')) {
+		loginBlock.doLoginByCID();
+	}
+
 };
 start();

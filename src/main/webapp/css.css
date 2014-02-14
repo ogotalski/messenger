@@ -156,13 +156,15 @@ body {
 	text-align: center;
 	border: solid 1px #676767;
 	background: #FFFFFF;
+	position: relative;
 }
 #searchUser{
+	outline: none;
 	margin:0px;
 	padding: 7px 10px ;
 	width: 100%;
 	border:none;
-	display:block;
+	display: inline-block;
 }
 #loginBlock{
 	position:fixed;
@@ -224,4 +226,8 @@ body {
 	text-align: center;
 	color:#FF5959;
 }
-
+#searchButton {
+	display: inline-block;
+	vertical-align: -3px;
+	margin-right: 2px;
+}

@@ -13,7 +13,8 @@ public class ActionFactory {
 		map.put("reg", new LoginAction());
 		map.put("loguot", new LogoutAction());
 		map.put("get", new MessageAction());
-		map.put("send", new SendMessageAction());
+		map.put("sent", new SendMessageAction());
+		map.put("users", new UserAction());
 	}
 
 	public static ServletAction getAction(String actionName) {

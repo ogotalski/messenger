@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.training.messenger.DAO.UserDAO;
 import org.training.messenger.beans.User;
@@ -159,6 +161,38 @@ public class DBUserDAO implements UserDAO {
 			DBSource.closeConnection(connection);
 		}
 	
+	}
+
+	@Override
+	public List<User> getUsers(String name, User user) {
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet rs = null;
+		List<User> users = new ArrayList<User>();
+		try {
+			connection = DBSource.getConnection();
+			String sql = SELECT_USERS
+					+ "WHERE name like ? ";
+			if (user!= null){
+				sql+="and id != ?";
+			}
+			statement = connection.prepareStatement(sql);
+			statement.setString(1, "%"+name+"%");
+			if (user != null){
+				statement.setInt(2, user.getId());
+			}
+			rs = statement.executeQuery();
+			while (rs.next()) {
+				users .add( getUser(rs));
+			}
+		} catch (SQLException e) {
+			throw new ServerException(e);
+		} finally {
+			DBSource.closeResultSet(rs);
+			DBSource.closeStatement(statement);
+			DBSource.closeConnection(connection);
+		}
+		return users;
 	}
 
 }
