@@ -271,25 +271,7 @@ if (!String.prototype.trim) {
 		return st.trim();
 	};
 };
-utils.Event = function() {
-	if (CustomEvent) {
-		return function(name, detail) {
-			var event = new CustomEvent(name, {
-				"detail" : detail
-			});
-			return event;
-		};
-	} else {
-		return function(name, detail) {
-			var event = document.createEvent('Event');
-			event.initEvent(name, true, true);
-			if (details) {
-				event.detail = detail;
-			}
-			return event;
-		};
-	}
-}();
+
 utils.getComputedStyle = function() {
 	if (!window.getComputedStyle) {
 		var getComputedStyle = function(elem, pseudo) {
@@ -305,7 +287,7 @@ utils.getComputedStyle = function() {
 						return arguments[2].toUpperCase();
 					});
 				}
-				return el.currentStyle[prop] ? el.currentStyle[prop] : null;
+				return this.el.currentStyle[prop] ? this.el.currentStyle[prop] : null;
 			};
 			return cs;
 		};
@@ -426,12 +408,43 @@ utils.Element.prototype.getWidth = function() {
 utils.Element.prototype.getHeigth = function() {
 	return this.element.clientHeight;
 };
+var EventBus = function(){ 
+	this.listeners ={};
+};
+EventBus.prototype.addEventListener = function( handler, event){
+	if (!this.listeners[event]){
+		this.listeners[event] = [];
+	}
+	this.listeners[event].push(handler);
+};
+EventBus.prototype.dispatchEvent = function(event,message){
+	if (!message){
+		message = event;
+	}
+	if (this.listeners[event]){
+		for (var i in this.listeners[event]){
+			this.listeners[event][i].call(message);
+		}
+	}
+};
+EventBus.prototype.removeEvent = function(handler, event){
+	if (events[event]){
+		var numOfCallbacks = this.listeners[type].length;
+		var newArray = [];
+		for(var i=0; i<numOfCallbacks; i++) {
+			var listener = this.listeners[type][i];
+			if(listener === handler) {
 
+			} else {
+				newArray.push(listener);
+			}
+		}
+		this.listeners[type] = newArray;
+	}
+};
 // ------messenger
 var messenger = {};
-messenger.loginError = new utils.Event("loginError","Incorrect login or password");
-messenger.serverError = new utils.Event("serverError", "Server error");
-messenger.loginEvent = new utils.Event("login");
+var eventBus = new EventBus();
 // ------loginBlock
 var loginBlock = {
 	element : document.getElementById("loginBlock"),
@@ -464,16 +477,15 @@ loginBlock.doQuery = function(action, query) {
 	xmlhttp.onreadystatechange = function() {
 		if (xmlhttp.readyState == 4) {
 			if (xmlhttp.status == 200) {
-				loginBlock.hide();
-				loginBlock.element.dispatchEvent(messenger.loginEvent);
+				eventBus.dispatchEvent("login");
 				messageService.readMessagesArray(JSON
 						.parse(xmlhttp.responseText).message);
 			} else if (xmlhttp.status == 401) {
 				if (query) {
-					loginBlock.element.dispatchEvent(messenger.loginError);
+					eventBus.dispatchEvent("loginError","Invalid name or password");
 				}
 			} else {
-				loginBlock.element.dispatchEvent(messenger.serverError);
+				eventBus.dispatchEvent("serverError","Server error");
 			}
 		}
 	};
@@ -493,10 +505,7 @@ loginBlock.doReg = function() {
 	loginBlock.doQuery("reg",loginBlock._getQueryString());
 };
 
-loginBlock.onError = function(ev) {
-	if (!ev) {
-		ev = window.event;
-	}
+loginBlock.onError = function(message) {
 	loginBlock.setError(ev.detail);
 };
 loginBlock.hide = function() {
@@ -519,6 +528,8 @@ var messageBlock = function() {
 	el.rightXoffset = el.RIGHT_SIDE.getWidth();
 	el.INPUT_MESSAGE = new utils.Element(document
 			.getElementById("inputMessage"));
+	el.SEARCH_USER =  new utils.Element(document.getElementById("searchUser"));
+	el.SEARCH_USER_BLOCK = new utils.Element(document.getElementById("findUserBlock"));
 	el.SEND_BUTTON = new utils.Element(document.getElementById("sendButton"));
 	el.USER_TEMPLATE = document.getElementById("template").querySelector(
 			".user");
@@ -548,6 +559,7 @@ messageBlock.setWidth = function() {
 	this.LEFT_SIDE.setFullWidth(leftSideWidth - this.delimiterFullLentgh);
 	this.INPUT_MESSAGE.setFullWidth(rightSideWidth
 			- this.SEND_BUTTON.getWidth() - this.INPUT_BLOCK.bordersX );  
+	this.SEARCH_USER.setFullWidth(leftSideWidth-this.delimiterFullLentgh - this.SEARCH_USER_BLOCK.bordersX);
 };
 messageBlock.onResize = function(ev) {
 	messageBlock.viewportWidth = document.documentElement.clientWidth;
@@ -714,7 +726,7 @@ messageService.start = function() {
 		messageService.readMessagesArray(JSON.parse(e.data).message);
 	};
 	event.onerror = function(e) {
-		loginBlock.element.dispatchEvent(messenger.serverError);
+		utils.dispatch(loginBlock.element,messenger.serverError);
 
 	};
 
@@ -730,13 +742,14 @@ function start() {
 	messageBlock.hide();
 	utils.addListener(loginBlock.loginButton, loginBlock.doLogin, "click");
 	utils.addListener(loginBlock.regButton,loginBlock.doReg, "click");
-	utils.addListener(loginBlock.element, loginBlock.hide, "login");
-	utils.addListener(loginBlock.element, messageBlock.view, "login");
-	utils.addListener(loginBlock.element, messageService.onlogin, "login");
+	eventBus.addEventListener(loginBlock.hide,"login");
 	
-	utils.addListener(loginBlock.element, loginBlock.view, "loginError");
-	utils.addListener(loginBlock.element, loginBlock.onError, "loginError");
-	utils.addListener(loginBlock.element, messageBlock.hide, "loginError");
+	eventBus.addEventListener(messageBlock.view, "login");
+	eventBus.addEventListener(messageService.onlogin, "login");
+	
+	eventBus.addEventListener(loginBlock.view, "loginError");
+	eventBus.addEventListener(loginBlock.onError, "loginError");
+	eventBus.addEventListener(messageBlock.hide, "loginError");
 
 	if (utils.getCookie('cid')) {
            loginBlock.doLoginByCID();

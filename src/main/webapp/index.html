@@ -11,12 +11,11 @@
 				<div class="date"></div>
 			</div>
 			<div class="mess"></div>
-
 		</li>
 	</div>
 	<div id="leftSide">
 	    <div id ="loginedUser">me</div>
-	    <div class="findUser">
+	    <div id="findUserBlock">
 	    	<input type="search" id="searchUser" placeholder="Search user..."/>
 	    </div>
 		<ul id="usersList" class="users">
@@ -34,24 +33,24 @@
 			<div id="sendButton">Send</div>
 		</div>
 	</div>
-	<div id="loginBlock">
-		<div class="row">
+	<ul id="loginBlock">
+		<li class="row">
 			<div class="label">Login:</div>
 			<div class="edit">
 				<input id ="login" type="text"/>
 			</div>
-		</div>
-		<div class="row">
+		</li>
+		<li class="row">
 			<div class="label">Password:</div>
 			<div class="edit">
 				<input id ="password" type="password"/>
 			</div>
-		</div>
-		<div class="row">
+		</li>
+		<li class="row">
 			<div id="regButton">Sign up</div>
 			<div id="loginButton">Sign in</div>
-		</div>
-		<div class="row" id="loginError"></div>
-	</div>
+		</li>
+		<li class="row" id="loginError"></li>
+	</ul>
 		<script src="script.js" type="text/javascript"></script>
 </body>
