@@ -116,7 +116,7 @@ public class DBMessengeDAO implements MessageDAO {
 		List<Message> list = new ArrayList<Message>();
 		try{
 			connection = DBSource.getConnection();
-			statement = connection.prepareStatement("INSERT INTO messages ( sender, receiver, text, date, readed) VALUES (?,?,?,?,false)");
+			statement = connection.prepareStatement("INSERT INTO messages ( sender, receiver, text, date_time, readed) VALUES (?,?,?,?,false)");
 			statement.setInt(1, message.getSender().getId());
 			statement.setInt(2, message.getReceiver().getId());
 			statement.setString(3, message.getText());

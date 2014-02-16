@@ -63,7 +63,7 @@ public class DBUserDAO implements UserDAO {
 			statement.setString(1, name);
 			rs = statement.executeQuery();
 			if (rs.next()) {
-				getUser(rs);
+				user = getUser(rs);
 			}
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -88,7 +88,7 @@ public class DBUserDAO implements UserDAO {
 			statement.setInt(1, id);
 			rs = statement.executeQuery();
 			if (rs.next()) {
-				getUser(rs);
+				user = getUser(rs);
 			}
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -113,7 +113,7 @@ public class DBUserDAO implements UserDAO {
 			statement.setString(1, qid);
 			rs = statement.executeQuery();
 			if (rs.next()) {
-				getUser(rs);
+				user = getUser(rs);
 			}
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -172,9 +172,9 @@ public class DBUserDAO implements UserDAO {
 		try {
 			connection = DBSource.getConnection();
 			String sql = SELECT_USERS
-					+ "WHERE name like ? ";
+					+ "WHERE name like ?";
 			if (user!= null){
-				sql+="and id != ?";
+				sql+=" and id != ?";
 			}
 			statement = connection.prepareStatement(sql);
 			statement.setString(1, "%"+name+"%");

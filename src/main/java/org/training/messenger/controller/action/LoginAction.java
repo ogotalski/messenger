@@ -39,7 +39,7 @@ public class LoginAction implements ServletAction {
 		}
 		
 		user = userDAO.getUser(userName, password);
-		if (user == null) {
+		if (user == null && password==null && userName==null ) {
 			if (request.getCookies() != null)
 			for (Cookie cookie : request.getCookies()) {
 				if (cookie.getName().equals(Constants.QID)) {

@@ -441,7 +441,7 @@ EventBus.prototype.dispatchEvent = function(event, message) {
 	}
 	if (this.listeners[event]) {
 		for ( var i in this.listeners[event]) {
-			this.listeners[event][i].call(message);
+			this.listeners[event][i].call(event,message);
 		}
 	}
 };
@@ -478,9 +478,9 @@ loginBlock.setError = function(er) {
 loginBlock._getQueryString = function() {
 	var login = utils.trim(this.loginInput.value);
 	var pass = this.passInput.value;
-	var qstring = '';
+	var qstring = undefined;
 	if (login && pass) {
-		qstring += "user=" + encodeURIComponent(login) + "&pass="
+		qstring = "user=" + encodeURIComponent(login) + "&pass="
 				+ encodeURIComponent(pass);
 	} else {
 		this.setError("User or passwor is empty");
@@ -515,7 +515,10 @@ loginBlock.doQuery = function(action, query) {
 
 };
 loginBlock.doLogin = function() {
-	loginBlock.doQuery("login", loginBlock._getQueryString());
+	var str = loginBlock._getQueryString();
+	if (str) {
+		loginBlock.doQuery("login", loginBlock._getQueryString());
+	}
 };
 loginBlock.doLoginByCID = function() {
 	loginBlock.doQuery("login");
@@ -650,20 +653,21 @@ messageBlock.onUserListClick = function(ev) {
 		ev.currentTarget = this;
 
 	}
-	if (ev.target===ev.currentTarget){
+	if (ev.target === ev.currentTarget) {
 		return;
 	}
-	var userblock =ev.target;
-	while(userblock.className != "user"){
-		if ( userblock.id === "usersList"){
+	var userblock = ev.target;
+	while (userblock.className != "user") {
+		if (userblock.id === "usersList") {
 			return;
 		}
-		userblock=userblock.parentElement;
+		userblock = userblock.parentElement;
 	}
 	var user = userblock.getAttribute("data-user");
 	if (user) {
 		window.location.hash = user;
-	};
+	}
+	;
 
 };
 
@@ -672,8 +676,8 @@ messageBlock.setCurrentUser = function(user) {
 	if (elem) {
 		elem.className = "user";
 	}
-	
-	var length =messageBlock.USERS_LIST.children.length;
+
+	var length = messageBlock.USERS_LIST.children.length;
 	for (var i = 0; i < length; i++) {
 		var userElem = messageBlock.USERS_LIST.children[i];
 		if (user === userElem.getAttribute("data-user")) {
@@ -681,15 +685,16 @@ messageBlock.setCurrentUser = function(user) {
 			break;
 		}
 
-	};
+	}
+	;
 };
 messageBlock.addMess = function(mess) {
 	var elem = this.MESS_TEMPLATE.cloneNode(true);
 	var el;
-	if (mess.outgoing) {
+	if (mess.outgoing.toString() == "true") { //indian code :)
 		elem.className += " outgoing"; // note the space
 		el = elem.querySelector(".userName");
-		el.innerText = this.loginedUser;
+		el.innerText = messageService.loginedUser;
 	} else {
 		el = elem.querySelector(".userName");
 		el.innerText = mess.user;
@@ -703,11 +708,11 @@ messageBlock.addMess = function(mess) {
 	}
 	var nextElement = undefined;
 	var element = undefined;
-	var length = MESSAGE_LIST.element.children.length;
+	var length = messageBlock.MESSAGE_LIST.element.children.length;
 	var id;
 	if (mess.id) {
 		for (var i = 0; i < length; i++) {
-			element = MESSAGE_LIST.element.children[i];
+			element = messageBlock.MESSAGE_LIST.element.children[i];
 			id = element.getAttribute("data-id");
 			if (!id) {
 				id = undefined;
@@ -726,15 +731,26 @@ messageBlock.addMess = function(mess) {
 };
 
 messageBlock.clearMessages = function() {
-	messageBlock.MESSAGE_LIST.innerHTML = "";
+	messageBlock.MESSAGE_LIST.element.innerHTML = "";
 };
 messageBlock.clearUsers = function() {
 	messageBlock.USERS_LIST.innerHTML = "";
 };
 messageBlock.viewUsers = function(arr) {
 	messageBlock.clearUsers();
-	for ( var i in arr) {
-		messageBlock.addUser(arr[i].user);
+	if (arr instanceof Array) {
+		for ( var i in arr) {
+			messageBlock.addUser(arr[i].user);
+		}
+	} else {
+
+		for ( var i in arr) {
+			messageBlock.addUser(i);
+		}
+
+	}
+	if (messageService.currentUser) {
+		messageBlock.setCurrentUser(messageService.currentUser);
 	}
 };
 messageBlock.hide = function() {
@@ -767,9 +783,11 @@ messageBlock.view = function() {
 			messageService.onUserSearch, "keyup");
 	utils.addListener(messageBlock.SEARCH_USER.element,
 			messageService.onUserSearch, "paste");
-	utils.addListener(messageBlock.USERS_LIST,messageBlock.onUserListClick, "click");
-	utils.addListener(window,messageService.onHashChange,"hashchange");
-	utils.addListener(messageBlock.SEND_BUTTON.element,messageBlock.onSendButtonClick,"click");
+	utils.addListener(messageBlock.USERS_LIST, messageBlock.onUserListClick,
+			"click");
+	utils.addListener(window, messageService.onHashChange, "hashchange");
+	utils.addListener(messageBlock.SEND_BUTTON.element,
+			messageBlock.onSendButtonClick, "click");
 };
 messageBlock.onSendButtonClick = function() {
 	var mess = {};
@@ -788,15 +806,18 @@ messageService.setLoginedUser = function(user) {
 	messageBlock.setLogined(user);
 };
 messageService.readMessage = function(message) {
-	var user = message.user.toUpperCase();
+	var user = message.user;
 	if (this.messages[user]) {
 		this.messages[user].push(message);
-		if (currentUser && currentUser === user) {
+		if (this.currentUser && this.currentUser === user) {
 			messageBlock.addMess(message);
 		}
 
 	} else {
 		this.messages[user] = new Array(message);
+		if (this.currentUser && this.currentUser === user) {
+			messageBlock.addMess(message);
+		}
 	}
 };
 
@@ -815,7 +836,7 @@ messageService.readMessagesArray = function(arr) {
 	messageBlock.viewUsers(messageService.messages);
 	if (!this.currentUser && user) {
 		window.location.hash = user;
-	}else if (this.currentUser){
+	} else if (this.currentUser) {
 		messageBlock.setCurrentUser(this.currentUser);
 	}
 };
@@ -832,15 +853,15 @@ messageService.start = function() {
 
 };
 messageService.onlogin = function() {
-	// messageService.start();
+	 //messageService.start();
 };
 messageService.searchUsersVal = "";
 messageService.onUserSearch = function() {
 	var search = messageBlock.SEARCH_USER.element.value;
 	if (messageService.searchUsersVal === search) {
 	} else {
+		messageService.searchUsersVal = search;
 		if (search) {
-			messageService.searchUsersVal = search;
 			var xmlhttp = utils.getXmlHttp();
 			xmlhttp.open('POST', 'controller', true);
 			xmlhttp.onreadystatechange = function() {
@@ -888,8 +909,8 @@ messageService.sendMessage = function(mess) {
 	};
 	xmlhttp.setRequestHeader("Content-type",
 			"application/x-www-form-urlencoded");
-	xmlhttp.send("&action=sent&user=" + mess.user + "&date" + mess.date
-			+ "&text" + mess.message);
+	xmlhttp.send("&action=sent&user=" + mess.user + "&date=" + mess.date
+			+ "&text=" +encodeURIComponent( mess.message));
 
 };
 messageService.onHashChange = function() {
@@ -901,16 +922,16 @@ messageService.onHashChange = function() {
 };
 
 messageService.viewUser = function(user) {
-		messageBlock.setCurrentUser(user);
-		messageService.currentUser = user;
-		messageBlock.clearMessages();
-		for ( var i in messageService.messages[user]) {
-			messageBlock.addMess(messageService.messages[user][i]);
-		}
-		;
-	 
+	messageBlock.setCurrentUser(user);
+	messageService.currentUser = user;
+	messageBlock.clearMessages();
+	for ( var i in messageService.messages[user]) {
+		messageBlock.addMess(messageService.messages[user][i]);
+	}
+	;
+
 };
-messageService.setLogindedUser = function(user){
+messageService.setLogindedUser = function(user) {
 	messageService.loginedUser = user;
 	messageBlock.setLogined(user);
 };
@@ -919,6 +940,7 @@ function start() {
 	messageBlock.onResize();
 	loginBlock.view();
 	messageBlock.hide();
+	messageService.onHashChange();
 	utils.addListener(loginBlock.loginButton, loginBlock.doLogin, "click");
 	utils.addListener(loginBlock.regButton, loginBlock.doReg, "click");
 	eventBus.addEventListener(loginBlock.hide, "login");
@@ -929,7 +951,7 @@ function start() {
 	eventBus.addEventListener(loginBlock.view, "loginError");
 	eventBus.addEventListener(loginBlock.onError, "loginError");
 	eventBus.addEventListener(messageBlock.hide, "loginError");
-	
+
 	if (utils.getCookie('cid')) {
 		loginBlock.doLoginByCID();
 	}
