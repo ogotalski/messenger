@@ -768,8 +768,8 @@ messageBlock.hide = function() {
 			messageService.onUserSearch, "change");
 	utils.removeListener(messageBlock.SEARCH_USER_BUTTON.element,
 			messageService.onUserSearch, "click");
-	utils.removeListener(messageBlock.LOGOUT_BUTTON,
-			messageService.doLogout, "click");
+	utils.removeListener(messageBlock.LOGOUT_BUTTON, messageService.doLogout,
+			"click");
 	utils.removeListener(messageBlock.SEARCH_USER.element,
 			messageService.onUserSearch, "input");
 	utils.removeListener(messageBlock.SEARCH_USER.element,
@@ -797,8 +797,8 @@ messageBlock.view = function() {
 			"mousedown");
 	utils.addListener(messageBlock.SEARCH_USER_BUTTON.element,
 			messageService.onUserSearch, "click");
-	utils.addListener(messageBlock.LOGOUT_BUTTON,
-			messageService.doLogout, "click");
+	utils.addListener(messageBlock.LOGOUT_BUTTON, messageService.doLogout,
+			"click");
 	utils.addListener(messageBlock.SEARCH_USER.element,
 			messageService.onUserSearch, "input");
 	utils.addListener(messageBlock.SEARCH_USER.element,
@@ -842,6 +842,9 @@ messageService.readMessage = function(message) {
 
 	} else {
 		this.messages[user] = new Array(message);
+		if (!messageService.searchUsersVal) {
+			messageBlock.addUser(user);
+		}
 	}
 };
 
@@ -857,7 +860,6 @@ messageService.readMessagesArray = function(arr) {
 		user = mess.user;
 		this.readMessage(mess);
 	}
-	messageBlock.viewUsers(messageService.messages);
 	if (!this.currentUser && user) {
 		window.location.hash = user;
 	} else if (this.currentUser) {
@@ -881,6 +883,7 @@ messageService.start = function() {
 
 };
 messageService.onlogin = function() {
+
 	messageService.start();
 };
 messageService.searchUsersVal = "";
@@ -973,8 +976,8 @@ messageService.doLogout = function() {
 		if (xmlhttp.readyState == 4) {
 			if (xmlhttp.status == 200) {
 				messageService.loginedUser = undefined;
-				messageService.messages={};
-				
+				messageService.messages = {};
+
 				eventBus.dispatchEvent("logout");
 			} else if (xmlhttp.status == 401) {
 				eventBus.dispatchEvent("loginError");
@@ -998,7 +1001,6 @@ function start() {
 	utils.addListener(loginBlock.regButton, loginBlock.doReg, "click");
 	eventBus.addEventListener(loginBlock.hide, "login");
 
-	
 	eventBus.addEventListener(messageBlock.view, "login");
 	eventBus.addEventListener(messageService.onlogin, "login");
 
