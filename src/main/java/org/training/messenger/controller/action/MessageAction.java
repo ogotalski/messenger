@@ -12,6 +12,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.training.messenger.DAO.DAOFactory;
 import org.training.messenger.DAO.MessageDAO;
 import org.training.messenger.DAO.UserDAO;
@@ -25,10 +27,7 @@ public class MessageAction implements ServletAction {
 	private MessageDAO messageDAO;
 	private UserDAO userDAO;
 	private ScheduledThreadPoolExecutor poolExecutor;
-	private static final String JSON_MESSAGES_FOOT = "]}";
-	private static final String JSON_MESSAGES_HEAD = "{\"user\":\"%s\",\"message\": [";
-	private static final String JSON_MESSAGE_FORMAT = "{\"id\" : %d,\"user\" : \"%s\",\"message\" : \"%s\",\"date\" : \"%s\",\"outgoing\" : \"%s\"},";
-
+	
 	public MessageAction() {
 		messageDAO = DAOFactory.getDAO(MessageDAO.class);
 		userDAO = DAOFactory.getDAO(UserDAO.class);
@@ -56,6 +55,8 @@ public class MessageAction implements ServletAction {
 			AsyncContext asyncContext = request.startAsync();
 			List<Message> messages = null;
 			response.setCharacterEncoding("UTF-8");
+			response.setHeader("Cache-control", "no-cache");
+	        response.setHeader("Connection", "Keep-alive");
 			final String JSON_CONTENT_TYPE = "text/event-stream";
 			response.setContentType(JSON_CONTENT_TYPE);
 			ScheduledFuture task = poolExecutor.scheduleWithFixedDelay(
@@ -71,28 +72,22 @@ public class MessageAction implements ServletAction {
 
 	public static String JSONMessageListToString(User user,
 			List<Message> messages) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(String.format(JSON_MESSAGES_HEAD, user.toString()));
-		String json_user;
-		String outgoing;
-		if (!messages.isEmpty()) {
-			for (Message message : messages) {
-				if (message.getReceiver().equals(user)) {
-					json_user = message.getSender().toString();
-					outgoing = "false";
-				} else {
-
-					json_user = message.getReceiver().toString();
-					outgoing = "true";
-				}
-				sb.append(String.format(JSON_MESSAGE_FORMAT, message.getId(),
-						json_user, message.getText(),
-						Formatter.format(message.getDate()), outgoing));
-			}
-			sb.setLength(sb.length() - 1); // remove last comma
-		}
-		sb.append(JSON_MESSAGES_FOOT);
-		return sb.toString();
+	JSONObject sb = new JSONObject();
+	sb.put("user", user.getName());
+	JSONArray mesArr = new JSONArray();
+	JSONObject mess ;
+	for (Message message: messages){
+		mess = new JSONObject();
+		
+		mess.put("sender", message.getSender().getName());
+		mess.put("receiver", message.getReceiver().getName());
+		mess.put("text", message.getText());
+		mess.put("date", Formatter.format(message.getDate()));
+		mesArr.add(mess);
+	}
+		sb.put("message", mesArr);
+		String st =sb.toJSONString();
+		return sb.toJSONString();
 	}
 
 }

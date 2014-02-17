@@ -473,7 +473,7 @@ var loginBlock = {
 	loginError : document.getElementById("loginError")
 };
 loginBlock.setError = function(er) {
-	this.loginError.innerText = er;
+	this.loginError.innerHTML = er;
 };
 loginBlock._getQueryString = function() {
 	var login = utils.trim(this.loginInput.value);
@@ -568,7 +568,7 @@ var messageBlock = function() {
 	return el;
 }();
 messageBlock.setLogined = function(user) {
-	messageBlock.LOGINED_USER.innerText = user;
+	messageBlock.LOGINED_USER.innerHTML = user;
 };
 messageBlock.setWidth = function() {
 	var leftSideWidth = this.viewportWidth * this.ratio;
@@ -641,7 +641,7 @@ messageBlock.addUser = function(user) {
 	var elem = this.USER_TEMPLATE.cloneNode(true);
 	var el = elem.querySelector(".userName");
 	elem.setAttribute("data-user", user);
-	el.innerText = user;
+	el.innerHTML = user;
 	this.USERS_LIST.appendChild(elem);
 	return elem;
 };
@@ -691,20 +691,21 @@ messageBlock.setCurrentUser = function(user) {
 messageBlock.addMess = function(mess) {
 	var elem = this.MESS_TEMPLATE.cloneNode(true);
 	var el;
-	if (mess.outgoing.toString() == "true") { //indian code :)
+	if (messageService.loginedUser === mess.sender){
 		elem.className += " outgoing"; // note the space
 		el = elem.querySelector(".userName");
-		el.innerText = messageService.loginedUser;
+		el.innerHTML = messageService.loginedUser;
 	} else {
 		el = elem.querySelector(".userName");
-		el.innerText = mess.user;
+		el.innerHTML = mess.sender;
 	}
+	
 	el = elem.querySelector(".mess");
-	el.innerText = mess.message;
+	el.innerHTML = mess.text;
 	el = elem.querySelector(".date");
-	el.innerText = mess.date;
+	el.innerHTML = mess.date;
 	if (mess.id) {
-		elem.setAttribute("data-id", mess.id);
+		elem.setAttribute("data-id", mess.date);
 	}
 	var nextElement = undefined;
 	var element = undefined;
@@ -717,7 +718,7 @@ messageBlock.addMess = function(mess) {
 			if (!id) {
 				id = undefined;
 			}
-			if (id > mess.id || !id) {
+			if (id > mess.date || !id) {
 				nextElement = element;
 				break;
 			}
@@ -726,7 +727,9 @@ messageBlock.addMess = function(mess) {
 	if (nextElement) {
 		this.MESSAGE_LIST.element.insertBefore(elem, nextElement);
 	} else {
+		
 		this.MESSAGE_LIST.element.appendChild(elem);
+		elem.scrollIntoView();
 	}
 };
 
@@ -791,7 +794,7 @@ messageBlock.view = function() {
 };
 messageBlock.onSendButtonClick = function() {
 	var mess = {};
-	mess.message = messageBlock.INPUT_MESSAGE.element.value;
+	mess.text = messageBlock.INPUT_MESSAGE.element.value;
 	messageBlock.INPUT_MESSAGE.element.value = "";
 	messageService.sendMessage(mess);
 };
@@ -806,18 +809,21 @@ messageService.setLoginedUser = function(user) {
 	messageBlock.setLogined(user);
 };
 messageService.readMessage = function(message) {
-	var user = message.user;
+	var user;
+	if (messageService.loginedUser === message.sender){
+		user = message.receiver;	
+	} else {
+		user = message.sender;
+	}
+	if (this.currentUser && this.currentUser === user) {
+		messageBlock.addMess(message);
+	}
 	if (this.messages[user]) {
 		this.messages[user].push(message);
-		if (this.currentUser && this.currentUser === user) {
-			messageBlock.addMess(message);
-		}
+		
 
 	} else {
 		this.messages[user] = new Array(message);
-		if (this.currentUser && this.currentUser === user) {
-			messageBlock.addMess(message);
-		}
 	}
 };
 
@@ -843,8 +849,11 @@ messageService.readMessagesArray = function(arr) {
 messageService.start = function() {
 	var event;
 	event = new utils.EventSource("controller/?action=get");
+	event.addEventListener("message",function(ev){
+		messageService.readMessagesArray(JSON.parse(ev.data).message);
+	});
 	event.onmessage = function(e) {
-		messageService.readMessagesArray(JSON.parse(e.data).message);
+//		messageService.readMessagesArray(JSON.parse(e.data).message);
 	};
 	event.onerror = function(e) {
 		// eventBus.dispatchEvent("serverError");
@@ -853,7 +862,7 @@ messageService.start = function() {
 
 };
 messageService.onlogin = function() {
-	 //messageService.start();
+	 messageService.start();
 };
 messageService.searchUsersVal = "";
 messageService.onUserSearch = function() {
@@ -889,9 +898,9 @@ messageService.onUserSearch = function() {
 	}
 };
 messageService.sendMessage = function(mess) {
-	mess.user = messageService.currentUser;
+	mess.receiver = messageService.currentUser;
 	mess.date = utils.getCurDate();
-	mess.outgoing = true;
+	mess.sender = messageService.loginedUser;
 	messageService.readMessage(mess);
 
 	var xmlhttp = utils.getXmlHttp();
@@ -909,8 +918,8 @@ messageService.sendMessage = function(mess) {
 	};
 	xmlhttp.setRequestHeader("Content-type",
 			"application/x-www-form-urlencoded");
-	xmlhttp.send("&action=sent&user=" + mess.user + "&date=" + mess.date
-			+ "&text=" +encodeURIComponent( mess.message));
+	xmlhttp.send("&action=sent&user=" + mess.receiver + "&date=" + mess.date
+			+ "&text=" +encodeURIComponent( mess.text));
 
 };
 messageService.onHashChange = function() {

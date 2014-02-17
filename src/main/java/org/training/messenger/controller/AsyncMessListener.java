@@ -40,7 +40,7 @@ public class AsyncMessListener implements AsyncListener {
 
 	@Override
 	public void onStartAsync(AsyncEvent event) throws IOException {
-		interuptTask(event);
+		
 	}
 	
 

@@ -30,9 +30,12 @@ public class MessageGetter implements Runnable {
 		PrintWriter out;
 		try {
 			out = asyncContext.getResponse().getWriter();
-			out.println("id: " + id);
-			out.println("date: " + MessageAction.JSONMessageListToString(user, list));
-			out.println();
+			//out.println("id: " + id++);
+			out.println("event: "+ "message");
+			out.println("data: " + MessageAction.JSONMessageListToString(user, list)+"\n\n");
+		
+			System.out.println("id: " + id++);
+			System.out.println(MessageAction.JSONMessageListToString(user, list));
 			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
