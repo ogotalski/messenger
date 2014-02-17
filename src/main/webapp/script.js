@@ -441,7 +441,7 @@ EventBus.prototype.dispatchEvent = function(event, message) {
 	}
 	if (this.listeners[event]) {
 		for ( var i in this.listeners[event]) {
-			this.listeners[event][i].call(event,message);
+			this.listeners[event][i].call(event, message);
 		}
 	}
 };
@@ -499,6 +499,7 @@ loginBlock.doQuery = function(action, query) {
 				var resp = JSON.parse(xmlhttp.responseText);
 				messageService.setLogindedUser(resp.user);
 				messageService.readMessagesArray(resp.message);
+				loginBlock.setError("");
 			} else if (xmlhttp.status == 401) {
 				if (query) {
 					eventBus.dispatchEvent("loginError",
@@ -560,6 +561,7 @@ var messageBlock = function() {
 	el.MESS_TEMPLATE = document.getElementById("template").querySelector(
 			".message");
 	el.LOGINED_USER = document.getElementById("loginedUser");
+	el.LOGOUT_BUTTON = document.getElementById("logoutButton");
 	el.SEARCH_USER_BUTTON = new utils.Element(document
 			.getElementById("searchButton"));
 	el.viewportHeight = document.documentElement.clientHeight - 1;
@@ -691,7 +693,7 @@ messageBlock.setCurrentUser = function(user) {
 messageBlock.addMess = function(mess) {
 	var elem = this.MESS_TEMPLATE.cloneNode(true);
 	var el;
-	if (messageService.loginedUser === mess.sender){
+	if (messageService.loginedUser === mess.sender) {
 		elem.className += " outgoing"; // note the space
 		el = elem.querySelector(".userName");
 		el.innerHTML = messageService.loginedUser;
@@ -699,7 +701,7 @@ messageBlock.addMess = function(mess) {
 		el = elem.querySelector(".userName");
 		el.innerHTML = mess.sender;
 	}
-	
+
 	el = elem.querySelector(".mess");
 	el.innerHTML = mess.text;
 	el = elem.querySelector(".date");
@@ -727,7 +729,7 @@ messageBlock.addMess = function(mess) {
 	if (nextElement) {
 		this.MESSAGE_LIST.element.insertBefore(elem, nextElement);
 	} else {
-		
+
 		this.MESSAGE_LIST.element.appendChild(elem);
 		elem.scrollIntoView();
 	}
@@ -764,6 +766,21 @@ messageBlock.hide = function() {
 			messageService.onUserSearch, "click");
 	utils.removeListener(messageBlock.SEARCH_USER.element,
 			messageService.onUserSearch, "change");
+	utils.removeListener(messageBlock.SEARCH_USER_BUTTON.element,
+			messageService.onUserSearch, "click");
+	utils.removeListener(messageBlock.LOGOUT_BUTTON,
+			messageService.doLogout, "click");
+	utils.removeListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "input");
+	utils.removeListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "keyup");
+	utils.removeListener(messageBlock.SEARCH_USER.element,
+			messageService.onUserSearch, "paste");
+	utils.removeListener(messageBlock.USERS_LIST, messageBlock.onUserListClick,
+			"click");
+	utils.addListener(window, messageService.onHashChange, "hashchange");
+	utils.addListener(messageBlock.SEND_BUTTON.element,
+			messageBlock.onSendButtonClick, "click");
 	messageBlock.RIGHT_SIDE.element.style.display = "none";
 	messageBlock.LEFT_SIDE.element.style.display = "none";
 	messageBlock.DELIMITER.element.style.display = "none";
@@ -780,6 +797,8 @@ messageBlock.view = function() {
 			"mousedown");
 	utils.addListener(messageBlock.SEARCH_USER_BUTTON.element,
 			messageService.onUserSearch, "click");
+	utils.addListener(messageBlock.LOGOUT_BUTTON,
+			messageService.doLogout, "click");
 	utils.addListener(messageBlock.SEARCH_USER.element,
 			messageService.onUserSearch, "input");
 	utils.addListener(messageBlock.SEARCH_USER.element,
@@ -810,8 +829,8 @@ messageService.setLoginedUser = function(user) {
 };
 messageService.readMessage = function(message) {
 	var user;
-	if (messageService.loginedUser === message.sender){
-		user = message.receiver;	
+	if (messageService.loginedUser === message.sender) {
+		user = message.receiver;
 	} else {
 		user = message.sender;
 	}
@@ -820,7 +839,6 @@ messageService.readMessage = function(message) {
 	}
 	if (this.messages[user]) {
 		this.messages[user].push(message);
-		
 
 	} else {
 		this.messages[user] = new Array(message);
@@ -846,23 +864,24 @@ messageService.readMessagesArray = function(arr) {
 		messageBlock.setCurrentUser(this.currentUser);
 	}
 };
+var eventSource;
 messageService.start = function() {
-	var event;
-	event = new utils.EventSource("controller/?action=get");
-	event.addEventListener("message",function(ev){
+
+	eventSource = new utils.EventSource("controller/?action=get");
+	eventSource.addEventListener("message", function(ev) {
 		messageService.readMessagesArray(JSON.parse(ev.data).message);
 	});
-	event.onmessage = function(e) {
-//		messageService.readMessagesArray(JSON.parse(e.data).message);
+	eventSource.onmessage = function(e) {
+		// messageService.readMessagesArray(JSON.parse(e.data).message);
 	};
-	event.onerror = function(e) {
+	eventSource.onerror = function(e) {
 		// eventBus.dispatchEvent("serverError");
 
 	};
 
 };
 messageService.onlogin = function() {
-	 messageService.start();
+	messageService.start();
 };
 messageService.searchUsersVal = "";
 messageService.onUserSearch = function() {
@@ -919,7 +938,7 @@ messageService.sendMessage = function(mess) {
 	xmlhttp.setRequestHeader("Content-type",
 			"application/x-www-form-urlencoded");
 	xmlhttp.send("&action=sent&user=" + mess.receiver + "&date=" + mess.date
-			+ "&text=" +encodeURIComponent( mess.text));
+			+ "&text=" + encodeURIComponent(mess.text));
 
 };
 messageService.onHashChange = function() {
@@ -944,6 +963,31 @@ messageService.setLogindedUser = function(user) {
 	messageService.loginedUser = user;
 	messageBlock.setLogined(user);
 };
+messageService.doLogout = function() {
+	if (eventSource) {
+		eventSource.close();
+	}
+	var xmlhttp = utils.getXmlHttp();
+	xmlhttp.open('POST', 'controller', true);
+	xmlhttp.onreadystatechange = function() {
+		if (xmlhttp.readyState == 4) {
+			if (xmlhttp.status == 200) {
+				messageService.loginedUser = undefined;
+				messageService.messages={};
+				
+				eventBus.dispatchEvent("logout");
+			} else if (xmlhttp.status == 401) {
+				eventBus.dispatchEvent("loginError");
+			} else {
+				eventBus.dispatchEvent("serverError", "Server error");
+			}
+		}
+	};
+	xmlhttp.setRequestHeader("Content-type",
+			"application/x-www-form-urlencoded");
+	xmlhttp.send("&action=logout");
+
+};
 // -----workflow
 function start() {
 	messageBlock.onResize();
@@ -954,15 +998,20 @@ function start() {
 	utils.addListener(loginBlock.regButton, loginBlock.doReg, "click");
 	eventBus.addEventListener(loginBlock.hide, "login");
 
+	
 	eventBus.addEventListener(messageBlock.view, "login");
 	eventBus.addEventListener(messageService.onlogin, "login");
 
 	eventBus.addEventListener(loginBlock.view, "loginError");
-	eventBus.addEventListener(loginBlock.onError, "loginError");
 	eventBus.addEventListener(messageBlock.hide, "loginError");
-
-	if (utils.getCookie('cid')) {
+	eventBus.addEventListener(loginBlock.view, "logout");
+	eventBus.addEventListener(messageBlock.hide, "logout");
+	eventBus.addEventListener(messageBlock.clearMessages, "logout");
+	eventBus.addEventListener(messageBlock.clearUsers, "logout");
+	if (utils.getCookie('qid')) {
 		loginBlock.doLoginByCID();
+	} else {
+		eventBus.addEventListener(loginBlock.onError, "loginError");
 	}
 
 };

@@ -144,7 +144,8 @@ body {
 #sendButton:active {
 	background: #ffffff;
 }
-#loginedUser{
+.loginedUser{
+	position:relative;
 	margin: 5px 15px;
 	padding: 5px;
 	text-align: center;
@@ -185,7 +186,6 @@ body {
 	display: block;
 }
 #loginBlock li.row div.label {
-	float: left;	
 	padding-top: 5px;
 	display: inline-block;
 }
@@ -196,17 +196,18 @@ body {
 }
 #login {
 	padding:2px;
+	width:150px;
 	border: solid 1px #676767;
 	background: #FFFFFF;
 }
 #password {
+	width:150px;
 	padding:2px;
 	border: solid 1px #676767;
 	background: #FFFFFF;
 }
 #regButton {
 	cursor: pointer;
-	float: left;
 	margin: 11px;
 	display: inline-block;
 	
@@ -221,7 +222,7 @@ body {
 	display: inline-block;
 }
 #loginBlock #loginError {
-	margin-top: 100px;
+
 	padding : 2px;
 	text-align: center;
 	color:#FF5959;
@@ -230,4 +231,10 @@ body {
 	display: inline-block;
 	vertical-align: -3px;
 	margin-right: 2px;
+}
+#logoutButton {
+	width: 20px;
+	float:right;
+	display: block;
+	margin-right: 4px;
 }

@@ -11,7 +11,7 @@ public class ActionFactory {
 	//	map.put(ISSUE, new IssueViewAction());
 		map.put("login", new LoginAction());
 		map.put("reg", new LoginAction());
-		map.put("loguot", new LogoutAction());
+		map.put("logout", new LogoutAction());
 		map.put("get", new MessageAction());
 		map.put("sent", new SendMessageAction());
 		map.put("users", new UserAction());
