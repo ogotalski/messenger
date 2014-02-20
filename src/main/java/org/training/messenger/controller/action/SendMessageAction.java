@@ -1,8 +1,10 @@
 package org.training.messenger.controller.action;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Timestamp;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,7 +35,7 @@ public class SendMessageAction implements ServletAction {
 		String receiver = request.getParameter(Constants.USER_PARAM);
 		String text = request.getParameter("text");
 		String date = request.getParameter("date");
-		
+
 		if (user == null) {
 			for (Cookie cookie : request.getCookies()) {
 				if (cookie.getName().equals(Constants.QID)) {
@@ -42,8 +44,7 @@ public class SendMessageAction implements ServletAction {
 				}
 			}
 			if (user != null) {
-				request.getSession().setAttribute(Constants.USER_ATR,
-						user);
+				request.getSession().setAttribute(Constants.USER_ATR, user);
 			}
 		}
 		if (user != null && receiver != null && text != null && date != null) {
@@ -55,6 +56,29 @@ public class SendMessageAction implements ServletAction {
 			message.setDate(messDate);
 			message.setText(text);
 			message.setReaded(false);
+			AsyncContext asyncContext = MessageAction.usersContext
+					.get(receiveUser);
+
+			if (asyncContext != null) {
+				try {
+					Integer eventId =(Integer) asyncContext.getRequest().getAttribute("eventId");
+					if (eventId == null) {
+						eventId = 1;
+					}
+					PrintWriter out = asyncContext.getResponse().getWriter();
+					out.println("id: " + eventId++);
+					out.println("event: " + "message");
+					out.println("data: "
+							+ MessageAction.JSONMessageToString(user, message)
+							+ "\n\n");
+					out.flush();
+					asyncContext.getRequest().setAttribute("eventId", eventId);
+					message.setReaded(true);
+					
+				} catch (IllegalStateException e){
+					
+				}
+			}
 			messageDAO.addMessage(message);
 		} else {
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED);

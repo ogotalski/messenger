@@ -18,7 +18,7 @@ import org.training.messenger.exceptions.ServerException;
 public class DBMessengeDAO implements MessageDAO {
 
 	private static final String UPDATE_READED = "update messages set readed=true where readed = false and receiver = ?";
-	private static final String SELECT_MESSENGES = "SELECT id, sender, receiver, text, date_time FROM messages";
+	private static final String SELECT_MESSENGES = "SELECT id, sender, receiver, text, date_time, readed FROM messages";
 	UserDAO userDAO;
 	
 	
@@ -74,6 +74,7 @@ public class DBMessengeDAO implements MessageDAO {
 		message.setSender(userDAO.getUser(rs.getInt(2)));
 		message.setText(rs.getString(4));
 		message.setDate(rs.getTimestamp(5));
+		message.setReaded(rs.getBoolean(6));
 		return message;
 	}
 
@@ -116,11 +117,12 @@ public class DBMessengeDAO implements MessageDAO {
 		List<Message> list = new ArrayList<Message>();
 		try{
 			connection = DBSource.getConnection();
-			statement = connection.prepareStatement("INSERT INTO messages ( sender, receiver, text, date_time, readed) VALUES (?,?,?,?,false)");
+			statement = connection.prepareStatement("INSERT INTO messages ( sender, receiver, text, date_time, readed) VALUES (?,?,?,?,?)");
 			statement.setInt(1, message.getSender().getId());
 			statement.setInt(2, message.getReceiver().getId());
 			statement.setString(3, message.getText());
 			statement.setTimestamp(4, message.getDate());
+			statement.setBoolean(5, message.isReaded());
 			statement.execute();
 		} catch (SQLException e){
 			throw new ServerException(e);

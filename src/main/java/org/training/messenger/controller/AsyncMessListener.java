@@ -6,7 +6,11 @@ import java.util.concurrent.ScheduledFuture;
 import javax.servlet.AsyncEvent;
 import javax.servlet.AsyncListener;
 import javax.servlet.annotation.WebListener;
-@WebListener
+
+import org.training.messenger.beans.User;
+import org.training.messenger.constants.Constants;
+import org.training.messenger.controller.action.MessageAction;
+
 public class AsyncMessListener implements AsyncListener {
 
 	@Override
@@ -16,8 +20,10 @@ public class AsyncMessListener implements AsyncListener {
 
 	@SuppressWarnings("rawtypes")
 	private void interuptTask(AsyncEvent event) {
-		ScheduledFuture task = (ScheduledFuture) event.getSuppliedRequest().getAttribute("task");
-		task.cancel(true);
+		User  user = (User) event.getSuppliedRequest().getAttribute(Constants.USER_ATR);
+		if (user != null){
+			MessageAction.usersContext.remove(user);
+		}
 		try {
 			event.getAsyncContext().getResponse().getWriter().close();
 		} catch (IOException e) {

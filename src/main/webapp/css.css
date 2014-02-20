@@ -44,9 +44,17 @@ body {
 	border: solid 1px #676767;
 	background: #FFFFFF;
 }
-
+.user .newMessages{
+	float: right;
+	padding: 2px;
+	background: #DFDFDF;
+	margin:0px;
+	min-width: 20px;
+}
 .userName {
 	text-transform: capitalize;
+	display:inline-block;
+	padding:2px;
 }
 
 #rightSide {
@@ -75,7 +83,9 @@ body {
 	border: solid 1px #FFFFFF;
 	background: #FFFFFF;
 }
-
+.message.unreaded {
+	background: #DFDFDF;
+}
 .message .userName {
 	float: left;
 	color: #9B9B9B;
