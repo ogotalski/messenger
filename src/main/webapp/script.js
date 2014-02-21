@@ -6,9 +6,13 @@
 var utils = {};
 utils.setTimeOut = function(){
 	if (setTimeout){
-		return setTimeout;
+		return function(fn,time,args){ 
+				return setTimeout(function(){fn(args);},time);
+		};
 	}else {
-		return window.setTimeout;
+		return function(fn,time,args){
+			return window.setTimeout(fn,time,arg);
+		};
 	}
 	
 }();
@@ -488,6 +492,11 @@ loginBlock.doQuery = function(action, query) {
 				var resp = JSON.parse(xmlhttp.responseText);
 				messageService.setLogindedUser(resp.user);
 				messageService.readMessagesArray(resp.message);
+				var loc = utils.storage.getObj(messageService.loginedUser);
+				if (loc){
+					messageService.readMessagesArray(loc);
+					messageService.tryToSend();
+				}
 				loginBlock.setError("");
 			} else if (xmlhttp.status == 401) {
 				if (query) {
@@ -621,7 +630,7 @@ messageBlock.setReaded = function(user){
 	length = messageBlock.MESSAGE_LIST.element.children.length;
 	for (var i = 0; i < length; i++) {
 		var messElem = messageBlock.MESSAGE_LIST.element.children[i];
-		messElem.className = "message";
+		messElem.className = messElem.className.replace("unreaded","");
 	}
 	
 };
@@ -659,13 +668,11 @@ messageBlock.onUserListClick = function(ev) {
 	if (!ev) {
 		ev = window.event;
 	}
-	if (!ev.currentTarget) {
-		ev.currentTarget = this;
+	if (!ev.target) {
+		ev.target = ev.srcElement;
 
 	}
-	if (ev.target === ev.currentTarget) {
-		return;
-	}
+	
 	var userblock = ev.target;
 	while (userblock.className != "user") {
 		if (userblock.id === "usersList") {
@@ -802,8 +809,8 @@ messageBlock.hide = function() {
 			messageService.onUserSearch, "paste");
 	utils.removeListener(messageBlock.USERS_LIST, messageBlock.onUserListClick,
 			"click");
-	utils.addListener(window, messageService.onHashChange, "hashchange");
-	utils.addListener(messageBlock.SEND_BUTTON.element,
+	utils.removeListener(window, messageService.onHashChange, "hashchange");
+	utils.removeListener(messageBlock.SEND_BUTTON.element,
 			messageBlock.onSendButtonClick, "click");
 	messageBlock.RIGHT_SIDE.element.style.display = "none";
 	messageBlock.LEFT_SIDE.element.style.display = "none";
@@ -837,7 +844,9 @@ messageBlock.view = function() {
 };
 messageBlock.onSendButtonClick = function() {
 	var mess = {};
+	
 	mess.text = messageBlock.INPUT_MESSAGE.element.value;
+	if (!mess.text) return;
 	messageBlock.INPUT_MESSAGE.element.value = "";
 	messageService.sendMessage(mess);
 };
@@ -974,6 +983,10 @@ messageService.sendMessage = function(mess) {
 	mess.sender = messageService.loginedUser;
 	messageService.readMessage(mess);
 
+	messageService.sendToServer(mess);
+};
+messageService.timer_id = undefined;
+messageService.sendToServer = function (mess){
 	var xmlhttp = utils.getXmlHttp();
 	xmlhttp.open('POST', 'controller', true);
 	xmlhttp.onreadystatechange = function() {
@@ -984,6 +997,16 @@ messageService.sendMessage = function(mess) {
 				eventBus.dispatchEvent("loginError");
 			} else {
 				eventBus.dispatchEvent("serverError", "Server error");
+				var loc = utils.storage.getObj(messageService.loginedUser);
+				if (!loc) {
+					loc = [];
+				}
+				loc.push(mess);
+				utils.storage.setObj(messageService.loginedUser, loc);
+				if (messageService.timer_id){
+					clearTimeout(messageService.timer_id);
+				}
+				messageService.timer_id = utils.setTimeOut(messageService.tryToSend,5000);
 			}
 		}
 	};
@@ -992,6 +1015,17 @@ messageService.sendMessage = function(mess) {
 	xmlhttp.send("&action=sent&user=" + mess.receiver + "&date=" + mess.date
 			+ "&text=" + encodeURIComponent(mess.text));
 
+};
+messageService.tryToSend = function(){
+	var loc = utils.storage.getObj(messageService.loginedUser);
+	utils.storage.st.removeItem(messageService.loginedUser);
+	if (!loc || !loc.length){
+		return;
+	}
+	while (loc.length){
+		var mess = loc.pop();
+		messageService.sendToServer(mess);
+	}
 };
 messageService.onHashChange = function() {
 	var hash = window.location.hash;
@@ -1046,6 +1080,7 @@ messageService.doLogout = function() {
 	xmlhttp.send("&action=logout");
 
 };
+
 // -----workflow
 function start() {
 	messageBlock.onResize();

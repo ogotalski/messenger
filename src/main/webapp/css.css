@@ -50,6 +50,7 @@ body {
 	background: #DFDFDF;
 	margin:0px;
 	min-width: 20px;
+	display: none;
 }
 .userName {
 	text-transform: capitalize;
@@ -69,6 +70,7 @@ body {
 	display: block;
 	list-style-type: none;
 	overflow-x: hidden;
+	overflow-y: scroll;
 }
 
 .message {
