@@ -32,6 +32,7 @@ public class SendMessageAction implements ServletAction {
 			HttpServletResponse response) throws IOException {
 		User user = (User) request.getSession()
 				.getAttribute(Constants.USER_ATR);
+		request.setCharacterEncoding("UTF-8");
 		String receiver = request.getParameter(Constants.USER_PARAM);
 		String text = request.getParameter("text");
 		String date = request.getParameter("date");

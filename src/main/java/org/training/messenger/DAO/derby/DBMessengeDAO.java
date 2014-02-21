@@ -17,6 +17,7 @@ import org.training.messenger.exceptions.ServerException;
 
 public class DBMessengeDAO implements MessageDAO {
 
+	private static final int READED_INDEX = 5;
 	private static final String UPDATE_READED = "update messages set readed=true where readed = false and receiver = ?";
 	private static final String SELECT_MESSENGES = "SELECT id, sender, receiver, text, date_time, readed FROM messages";
 	UserDAO userDAO;
@@ -70,11 +71,16 @@ public class DBMessengeDAO implements MessageDAO {
 		Message message = new Message();
 		final int ID_INDEX = 1;
 		message.setId(rs.getInt(ID_INDEX));
-		message.setReceiver(userDAO.getUser(rs.getInt(3)));
-		message.setSender(userDAO.getUser(rs.getInt(2)));
-		message.setText(rs.getString(4));
-		message.setDate(rs.getTimestamp(5));
-		message.setReaded(rs.getBoolean(6));
+		final int RECEIVER_INDEX = 3;
+		message.setReceiver(userDAO.getUser(rs.getInt(RECEIVER_INDEX)));
+		final int SENDER_INDEX = 2;
+		message.setSender(userDAO.getUser(rs.getInt(SENDER_INDEX)));
+		final int TEXT_INDEX = 4;
+		message.setText(rs.getString(TEXT_INDEX));
+		final int DATE_INDEX = 5;
+		message.setDate(rs.getTimestamp(DATE_INDEX));
+		final int READED_INDEX = 6;
+		message.setReaded(rs.getBoolean(READED_INDEX));
 		return message;
 	}
 
@@ -118,11 +124,15 @@ public class DBMessengeDAO implements MessageDAO {
 		try{
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement("INSERT INTO messages ( sender, receiver, text, date_time, readed) VALUES (?,?,?,?,?)");
-			statement.setInt(1, message.getSender().getId());
-			statement.setInt(2, message.getReceiver().getId());
-			statement.setString(3, message.getText());
-			statement.setTimestamp(4, message.getDate());
-			statement.setBoolean(5, message.isReaded());
+			final int SENDER_INDEX = 1;
+			statement.setInt(SENDER_INDEX, message.getSender().getId());
+			final int RECEIVER_INDEX = 2;
+			statement.setInt(RECEIVER_INDEX, message.getReceiver().getId());
+			final int TEXT_INDEX = 3;
+			statement.setString(TEXT_INDEX, message.getText());
+			final int DATE_INDEX = 4;
+			statement.setTimestamp(DATE_INDEX, message.getDate());
+			statement.setBoolean(READED_INDEX, message.isReaded());
 			statement.execute();
 		} catch (SQLException e){
 			throw new ServerException(e);

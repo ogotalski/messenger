@@ -4,7 +4,7 @@ public class User {
 	private int id;
 	private String name;
 	private String password;
-	private String ip;
+	private String qid;
 	
 	
 	public int getId() {
@@ -26,20 +26,18 @@ public class User {
 		this.password = password;
 	}
 	
-	public String getIp() {
-		return ip;
+	public String getQId() {
+		return qid;
 	}
-	public void setIp(String ip) {
-		this.ip = ip;
+	public void setQId(String ip) {
+		this.qid = ip;
 	}
 	
 	@Override
 	public String toString() {
 		return name;
 	}
-	 public String getQId(){
-		 return name+ip;
-	 }
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

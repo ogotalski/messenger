@@ -29,9 +29,9 @@ public class LoginAction implements ServletAction {
 	public void doAction(HttpServletRequest request,
 			HttpServletResponse response) throws IOException {
 		String userName = request.getParameter(Constants.USER_PARAM);
-		String password = request.getParameter("pass");
+		String password = request.getParameter(Constants.PASS_PARAM);
 		User user;
-		if (request.getParameter("action").equals("reg") && userName != null && password!=null){
+		if (request.getParameter(Constants.ACTION_PARAM).equals(Constants.REG_PARAM) && userName != null && password!=null){
 			user = new User();
 			user.setName(userName);
 			user.setPassword(password);
@@ -51,9 +51,9 @@ public class LoginAction implements ServletAction {
 		if (user != null) {
 			HttpSession session = request.getSession();
 			session.setAttribute(Constants.USER_ATR, user);
-			user.setIp(request.getRequestedSessionId());
+			user.setQId(request.getRequestedSessionId());
 			userDAO.updateUserQId(user);
-			response.addCookie(new Cookie(Constants.QID, user.getIp()));
+			response.addCookie(new Cookie(Constants.QID, user.getQId()));
 			List<Message>messages = messageDAO.getAllMessages(user);
 			PrintWriter out = response.getWriter();
 			out.print(MessageAction.JSONMessageListToString(user, messages));

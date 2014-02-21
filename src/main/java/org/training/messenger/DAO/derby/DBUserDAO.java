@@ -25,8 +25,10 @@ public class DBUserDAO implements UserDAO {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
 					+ "WHERE name = ? and password = ? ");
-			statement.setString(1, name);
-			statement.setString(2, password);
+			final int NAME_INDEX = 1;
+			statement.setString(NAME_INDEX, name);
+			final int PASS_INDEX = 2;
+			statement.setString(PASS_INDEX, password);
 			rs = statement.executeQuery();
 			if (rs.next()) {
 				user = getUser(rs);
@@ -44,9 +46,12 @@ public class DBUserDAO implements UserDAO {
 	private User getUser(ResultSet rs) throws SQLException {
 		User user;
 		user = new User();
-		user.setId(rs.getInt(1));
-		user.setName(rs.getString(2));
-		user.setIp(rs.getString(3));
+		final int ID_INDEX = 1;
+		user.setId(rs.getInt(ID_INDEX));
+		final int NAME_INDEX = 2;
+		user.setName(rs.getString(NAME_INDEX));
+		final int QID_INDEX = 3;
+		user.setQId(rs.getString(QID_INDEX));
 		return user;
 	}
 
@@ -60,7 +65,8 @@ public class DBUserDAO implements UserDAO {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
 					+ "WHERE name = ? ");
-			statement.setString(1, name);
+			final int NAME_INDEX = 1;
+			statement.setString(NAME_INDEX, name);
 			rs = statement.executeQuery();
 			if (rs.next()) {
 				user = getUser(rs);
@@ -85,7 +91,8 @@ public class DBUserDAO implements UserDAO {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
 					+ "WHERE id = ? ");
-			statement.setInt(1, id);
+			final int ID_INDEX = 1;
+			statement.setInt(ID_INDEX, id);
 			rs = statement.executeQuery();
 			if (rs.next()) {
 				user = getUser(rs);
@@ -110,7 +117,8 @@ public class DBUserDAO implements UserDAO {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement(SELECT_USERS
 					+ "WHERE cid = ? ");
-			statement.setString(1, qid);
+			final int QID_INDEX = 1;
+			statement.setString(QID_INDEX, qid);
 			rs = statement.executeQuery();
 			if (rs.next()) {
 				user = getUser(rs);
@@ -132,9 +140,12 @@ public class DBUserDAO implements UserDAO {
 		try {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement("INSERT INTO users (name,password,cid) VALUES (?,?,?)");
-			statement.setString(1, user.getName());
-			statement.setString(2, user.getPassword());
-			statement.setString(3, user.getIp());
+			final int NAME_INDEX = 1;
+			statement.setString(NAME_INDEX, user.getName());
+			final int PASS_INDEX = 2;
+			statement.setString(PASS_INDEX, user.getPassword());
+			final int QID_INDEX = 3;
+			statement.setString(QID_INDEX, user.getQId());
 			statement.execute();
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -151,8 +162,10 @@ public class DBUserDAO implements UserDAO {
 		try {
 			connection = DBSource.getConnection();
 			statement = connection.prepareStatement("update users set cid=? where id = ?");
-			statement.setString(1, user.getIp());
-			statement.setInt(2, user.getId());
+			final int QID_INDEX = 1;
+			statement.setString(QID_INDEX, user.getQId());
+			final int ID_INDEX = 2;
+			statement.setInt(ID_INDEX, user.getId());
 			statement.execute();
 		} catch (SQLException e) {
 			throw new ServerException(e);
@@ -177,9 +190,11 @@ public class DBUserDAO implements UserDAO {
 				sql+=" and id != ?";
 			}
 			statement = connection.prepareStatement(sql);
-			statement.setString(1, "%"+name+"%");
+			final int SEARCH_INDEX = 1;
+			statement.setString(SEARCH_INDEX, "%"+name+"%");
 			if (user != null){
-				statement.setInt(2, user.getId());
+				final int ID_INDEX = 2;
+				statement.setInt(ID_INDEX, user.getId());
 			}
 			rs = statement.executeQuery();
 			while (rs.next()) {

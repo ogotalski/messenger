@@ -27,6 +27,15 @@ import org.training.messenger.controller.AsyncMessListener;
 import org.training.messenger.utils.Formatter;
 
 public class MessageAction implements ServletAction {
+	private static final String LRCF_LRCF = "\n\n";
+	private static final String DATA_HEAD = "data: ";
+	private static final String MESSAGE_EV = "message";
+	private static final String EVENT_HEAD = "event: ";
+	private static final String KEEP_ALIVE = "Keep-alive";
+	private static final String NO_CACHE = "no-cache";
+	private static final String CONNECTION = "Connection";
+	private static final String CACHE_CONTROL = "Cache-control";
+	private static final String UTF_8 = "UTF-8";
 	private static final int POOL_SIZE = 10;
 	private MessageDAO messageDAO;
 	private UserDAO userDAO;
@@ -61,14 +70,14 @@ public class MessageAction implements ServletAction {
 			AsyncContext asyncContext = request.startAsync();
 			asyncContext.setTimeout(5000);
 			List<Message> list = messageDAO.getNewMessages(user);
-			response.setCharacterEncoding("UTF-8");
-			response.setHeader("Cache-control", "no-cache");
-			response.setHeader("Connection", "Keep-alive");
+			response.setCharacterEncoding(UTF_8);
+			response.setHeader(CACHE_CONTROL, NO_CACHE);
+			response.setHeader(CONNECTION, KEEP_ALIVE);
 			final String JSON_CONTENT_TYPE = "text/event-stream";
 			response.setContentType(JSON_CONTENT_TYPE);
 			PrintWriter out = response.getWriter();
-			out.println("event: "+ "message");
-			out.println("data: " + MessageAction.JSONMessageListToString(user, list)+"\n\n");
+			out.println(EVENT_HEAD+ MESSAGE_EV);
+			out.println(DATA_HEAD + MessageAction.JSONMessageListToString(user, list)+LRCF_LRCF);
 			out.flush();
 			asyncContext.addListener(asyncListener);
 			usersContext.put(user, asyncContext);
@@ -93,7 +102,7 @@ public class MessageAction implements ServletAction {
 			mess.put("readed", message.isReaded());
 			mesArr.add(mess);
 		}
-		sb.put("message", mesArr);
+		sb.put(MESSAGE_EV, mesArr);
 		String st = sb.toJSONString();
 		return sb.toJSONString();
 	}
