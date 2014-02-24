@@ -32,10 +32,15 @@ public class LoginAction implements ServletAction {
 		String password = request.getParameter(Constants.PASS_PARAM);
 		User user;
 		if (request.getParameter(Constants.ACTION_PARAM).equals(Constants.REG_PARAM) && userName != null && password!=null){
+			try{
 			user = new User();
 			user.setName(userName);
 			user.setPassword(password);
 			userDAO.addUser(user);
+			} catch (IllegalArgumentException e){
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+				return;
+			}
 		}
 		
 		user = userDAO.getUser(userName, password);

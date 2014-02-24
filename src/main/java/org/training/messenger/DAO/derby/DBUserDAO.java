@@ -13,6 +13,7 @@ import org.training.messenger.exceptions.ServerException;
 
 public class DBUserDAO implements UserDAO {
 
+	private static final String ILLEGAL_EMAIL_OR_PASSWORD = "Illegal email or password";
 	private static final String SELECT_USERS = "SELECT id,name,cid FROM users ";
 
 	@Override
@@ -148,7 +149,14 @@ public class DBUserDAO implements UserDAO {
 			statement.setString(QID_INDEX, user.getQId());
 			statement.execute();
 		} catch (SQLException e) {
-			throw new ServerException(e);
+			final int UNIQUE_ERROR_CODE = 30000;
+			final String UNIQUE_SQL_STATE = "23505";
+			if (!((e.getErrorCode() == UNIQUE_ERROR_CODE) && (UNIQUE_SQL_STATE
+					.equals(e.getSQLState())))) {
+				throw new ServerException(e);
+			} else {
+				throw new IllegalArgumentException(ILLEGAL_EMAIL_OR_PASSWORD);
+			}
 		} finally {
 			DBSource.closeStatement(statement);
 			DBSource.closeConnection(connection);
